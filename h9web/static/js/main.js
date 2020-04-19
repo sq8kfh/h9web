@@ -279,7 +279,10 @@ jQuery(function ($) {
             sock = undefined;
             log_status(e.reason, true);
             state = DISCONNECTED;
-            $('#terminal-container').css("height", 0);
+            $('#terminal-container').css("height", '');
+            $(document).unbind('mousemove');
+            $(document).unbind('mouseup');
+            $('#dragbar').unbind('mousedown');
         };
 
         $(window).resize(function () {
