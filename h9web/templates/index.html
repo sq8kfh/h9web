@@ -1,48 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-100">
 <head>
     <meta charset="UTF-8">
     <title> H9 </title>
     <link href="static/img/favicon.png" rel="icon" type="image/png">
     <link href="static/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
     <link href="static/css/xterm.css" rel="stylesheet" type="text/css"/>
+    <style>
+        #dragbar {
+            height: 5px;
+            cursor: row-resize;
+        }
+    </style>
 </head>
-<body>
-<nav class="navbar navbar-expand-sm bg-dark">
-    <ul class="navbar-nav">
-        <li class="nav-item">
-            <a class="nav-link" href="#">Link 1</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#"><i class="fas fa-receipt"></i> Link 2</a>
-        </li>
-        <li class="nav-item">
-            <form id="connect" action="" method="post" enctype="multipart/form-data" {% if debug %} novalidate{% end %}>
-                <input type="hidden" id="term" name="term" value="xterm-256color">
-                {% module xsrf_form_html() %}
-                <button type="submit" class="btn btn-info"><i class="fas fa-terminal"></i> CLI</button>
-            </form>
-        </li>
-    </ul>
-</nav>
-<div class="container-flex p-0">
-    <div class="row no-gutters bg-light text-dark">
-        <main class="col d-flex flex-column justify-content-center align-items-center">
-            <div class="d-flex flex-column">
-                <p>Dashboard</p>
-                <ul id="event"></ul>
-            </div>
-        </main>
+<body class="d-flex flex-column h-100">
+<header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark text-light justify-content-between">
+        <div class="container m-0 p-0 justify-content-start">
+            <a class="navbar-brand" href="#">H9</a>
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-tools"></i> Raw frame</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-cogs"></i> Settings</a>
+                </li>
+            </ul>
+        </div>
+        <form id="connect" action="" method="post" enctype="multipart/form-data" {%if debug%} novalidate{%end%}
+              class="form-inline">
+            <input type="hidden" id="term" name="term" value="xterm-256color">
+            {% module xsrf_form_html() %}
+            <button type="submit" class="btn btn-outline-info"><i class="fas fa-terminal"></i> CLI</button>
+        </form>
+    </nav>
+</header>
+<main class="container-fluid flex-fill d-flex flex-column p-0">
+    <div class="row no-gutters bg-light text-dark flex-fill">
+        <div id="main-container" class="col d-flex justify-content-center align-items-center">
+            <p>Dashboard</p>
+            <ul id="event"></ul>
+        </div>
+    </div>
+    <div id="dragbar" class="row no-gutters bg-dark">
+        <div class="col">
+        </div>
     </div>
     <div class="row no-gutters bg-secondary">
         <div class="col justify-content-center align-items-center">
             <div id="terminal-container"></div>
         </div>
     </div>
-</div>
+</main>
 <footer class="row no-gutters bg-dark text-light">
-    <div class="col d-flex flex-column justify-content-center align-items-center">
-        copyright
+    <div class="col d-flex justify-content-center align-items-center">
+        Copyright :)
     </div>
 </footer>
 

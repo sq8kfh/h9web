@@ -198,8 +198,8 @@ jQuery(function ($) {
                 }
             });
 
-        //term.fitAddon = new window.FitAddon.FitAddon();
-        //term.loadAddon(term.fitAddon);
+        term.fitAddon = new window.FitAddon.FitAddon();
+        term.loadAddon(term.fitAddon);
 
         console.log(url);
         if (!msg.encoding) {
@@ -260,7 +260,7 @@ jQuery(function ($) {
         sock.onopen = function () {
             term.open(terminal);
             //toggle_fullscreen(term);
-            //term.fitAddon.fit();
+            term.fitAddon.fit();
             term.focus();
             state = CONNECTED;
         };
@@ -279,11 +279,42 @@ jQuery(function ($) {
             sock = undefined;
             log_status(e.reason, true);
             state = DISCONNECTED;
+            $('#terminal-container').css("height", 0);
         };
 
         $(window).resize(function () {
             if (term) {
                 resize_terminal(term);
+            }
+        });
+        var dragging = false;
+
+        $('#dragbar').mousedown(function (e) {
+            e.preventDefault();
+            dragging = true;
+            var side = $('#terminal-container');
+            $(document).mousemove(function (ex) {
+                var cellheight = term._core._renderService._renderer.dimensions.actualCellHeight;
+                var tmp_height = (window.innerHeight - ex.pageY);
+                tmp_height = Math.floor(tmp_height / cellheight);
+                if (tmp_height < 1) {
+                    tmp_height = 1;
+                }
+                tmp_height = tmp_height * cellheight;
+                side.css("height", tmp_height);
+                term.fitAddon.fit();
+                //console.log('mousemove ' + ex.pageY + ' cellH ' + cellheight);
+                //console.log('newH: ' + tmp_height);
+
+            });
+        });
+
+        $(document).mouseup(function (e) {
+            if (dragging) {
+                $(document).unbind('mousemove');
+                term.fitAddon.fit();
+                resize_terminal(term)
+                dragging = false;
             }
         });
     }
@@ -352,6 +383,6 @@ jQuery(function ($) {
       }
 
       window.addEventListener('message', cross_origin_connect, false);
-    */
-    form_container.show();
+
+    form_container.show();*/
 });
