@@ -36,6 +36,9 @@ jQuery(function ($) {
     var status = $('#status'),
         button = $('.btn-primary'),
         form_container = $('.form-container'),
+        terminal_container = $('#terminal-container'),
+        terminal_dragbar = $('#terminal-dragbar'),
+
         style = {},
         form_id = '#connect',
         debug = document.querySelector(form_id).noValidate,
@@ -201,6 +204,8 @@ jQuery(function ($) {
         term.fitAddon = new window.FitAddon.FitAddon();
         term.loadAddon(term.fitAddon);
 
+        terminal_dragbar.css("height", 5);
+
         console.log(url);
         if (!msg.encoding) {
             console.log('Unable to detect the default encoding of your server');
@@ -261,6 +266,7 @@ jQuery(function ($) {
             term.open(terminal);
             //toggle_fullscreen(term);
             term.fitAddon.fit();
+            resize_terminal(term)
             term.focus();
             state = CONNECTED;
         };
@@ -279,10 +285,11 @@ jQuery(function ($) {
             sock = undefined;
             log_status(e.reason, true);
             state = DISCONNECTED;
-            $('#terminal-container').css("height", '');
+            terminal_container.css("height", '');
+            terminal_dragbar.css("height", 0);
             $(document).unbind('mousemove');
             $(document).unbind('mouseup');
-            $('#dragbar').unbind('mousedown');
+            terminal_dragbar.unbind('mousedown');
         };
 
         $(window).resize(function () {
@@ -292,19 +299,18 @@ jQuery(function ($) {
         });
         var dragging = false;
 
-        $('#dragbar').mousedown(function (e) {
+        terminal_dragbar.mousedown(function (e) {
             e.preventDefault();
             dragging = true;
-            var side = $('#terminal-container');
             $(document).mousemove(function (ex) {
                 var cellheight = term._core._renderService._renderer.dimensions.actualCellHeight;
                 var tmp_height = (window.innerHeight - ex.pageY);
-                tmp_height = Math.floor(tmp_height / cellheight);
+                tmp_height = (tmp_height/cellheight>>0);// Math.floor(tmp_height / cellheight);
                 if (tmp_height < 1) {
                     tmp_height = 1;
                 }
                 tmp_height = tmp_height * cellheight;
-                side.css("height", tmp_height);
+                terminal_container.css("height", tmp_height);
                 term.fitAddon.fit();
                 //console.log('mousemove ' + ex.pageY + ' cellH ' + cellheight);
                 //console.log('newH: ' + tmp_height);

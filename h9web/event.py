@@ -1,37 +1,40 @@
+import logging
+import json
+
 from tornado import web, gen
 from tornado.iostream import StreamClosedError
 
 
 class Event(web.RequestHandler):
-    def __init__(self, app, request):
-        super().__init__(app, request)
-
+    def initialize(self, loop=None, h9busfeeder=None):
+        self.loop = loop
         self.set_header('content-type', 'text/event-stream')
         self.set_header('cache-control', 'no-cache')
 
-        self.last_data = None
-        self.data = 'ala'
+        self.run = True
+        self.h9busfeeder = h9busfeeder
+        self.h9busfeeder.add_subscribers(self)
+        self.context = self.request.connection.context
+        logging.info('Connected event subscribers {}:{}'.format(*self.context.address[:2]))
 
     @gen.coroutine
-    def publish(self, data):
+    def publish_h9bus_event(self, data):
         """Pushes data to a listener."""
         try:
-            self.write('data: {}\n\n'.format(data))
+            dict_data = {"type": "h9frame", "data": data.strip()}
+            json_data = json.dumps(dict_data)
+            logging.debug('Event send {!r}'.format(json_data))
+
+            self.write('data: {}\n\n'.format(json_data))
             yield self.flush()
         except StreamClosedError:
-            pass
+            self.run = False
 
     @gen.coroutine
     def get(self):
-        # self.application.feeder.subscribe('jobposts')
+        while self.run:
+            yield gen.sleep(10)
 
-        while True:
-            #data = yield self.application.feeder.take()
-            self.data = self.data + '.'
-
-            yield gen.sleep(60)
-            if self.last_data == self.data:
-                yield gen.sleep(1)
-            else:
-                yield self.publish(self.data)
-                self.last_data = self.data
+    def on_finish(self):
+        logging.info('Disconnected event subscribers {}:{}'.format(*self.context.address[:2]))
+        self.h9busfeeder.del_subscribers(self)
