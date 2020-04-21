@@ -15,21 +15,20 @@ class H9busFeeder:
     def del_subscribers(self, sub):
         self.subscribers.remove(sub)
 
-    @gen.coroutine
-    def setup(self):
+    async def run(self):
         while True:
             try:
-                self.stream = yield TCPClient().connect("localhost", 1234)
+                self.stream = await TCPClient().connect("localhost", 1234)
             except StreamClosedError:
                 logging.error("Unable connect to h9bus")
-                yield gen.sleep(10)
+                await gen.sleep(10)
                 continue
             logging.info("Connecting to h9bus")
             while True:
                 try:
-                    a = yield self.stream.read_until(b"\n")
+                    a = await self.stream.read_until(b"\n")
                     a = a.decode('UTF-8')
-                    yield [sub.publish_h9bus_event(a) for sub in self.subscribers]
+                    await gen.multi([sub.publish_h9bus_event(a) for sub in self.subscribers])
                 except StreamClosedError:
                     logging.warning("Disconnected from h9bus")
-                    yield gen.sleep(5)
+                    await gen.sleep(5)

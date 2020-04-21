@@ -17,8 +17,8 @@ class Event(web.RequestHandler):
         self.context = self.request.connection.context
         logging.info('Connected event subscribers {}:{}'.format(*self.context.address[:2]))
 
-    @gen.coroutine
-    def publish_h9bus_event(self, data):
+
+    async def publish_h9bus_event(self, data):
         """Pushes data to a listener."""
         try:
             dict_data = {"type": "h9frame", "data": data.strip()}
@@ -26,15 +26,32 @@ class Event(web.RequestHandler):
             logging.debug('Event send {!r}'.format(json_data))
 
             self.write('data: {}\n\n'.format(json_data))
-            yield self.flush()
+            await self.flush()
         except StreamClosedError:
             self.run = False
 
-    @gen.coroutine
-    def get(self):
+
+    async def get(self):
         while self.run:
-            yield gen.sleep(10)
+            await gen.sleep(10)
 
     def on_finish(self):
         logging.info('Disconnected event subscribers {}:{}'.format(*self.context.address[:2]))
         self.h9busfeeder.del_subscribers(self)
+
+    subscribers = []
+
+    @classmethod
+    async def publish_to_all(cls, message):
+        print("Writing to Clients")
+        #await gen.multi([sub.publish_h9bus_event(a) for sub in self.subscribers])
+        for subscriber in cls.subscribers:
+            subscriber.publish_h9bus_event(subscriber, message)
+
+    @classmethod
+    async def publish_to_all_other(cls, self_subscriber, message):
+        print("Writing to Other clients")
+        await gen.multi([sub.publish_h9bus_event(a) for sub in self.subscribers])
+        for subscriber in cls.subscribers:
+            if  self_subscriber != subscriber:
+                subscriber.publish_h9bus_event(subscriber, message)

@@ -67,8 +67,7 @@ class Worker(object):
             data = os.read(self.fd, BUF_SIZE)
         except (OSError, IOError) as e:
             logging.error(e)
-            if errno_from_exception(e) in _ERRNO_CONNRESET:
-                self.close(reason='chan error on reading')
+            self.close(reason='chan error on reading')
         else:
             if not data:
                 self.close(reason='chan closed')

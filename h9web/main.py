@@ -48,7 +48,7 @@ def main():
         server_settings.update(ssl_options=ssl_ctx)
         app_listen(app, options.sslport, options.ssladdress, server_settings)
 
-    h9bus_feeder.setup()
+    loop.spawn_callback(h9bus_feeder.run)
     loop.start()
 
 
