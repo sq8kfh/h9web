@@ -1,24 +1,23 @@
 import logging
 from tornado import gen
-from tornado.tcpclient import TCPClient
 from tornado.iostream import StreamClosedError
 
+from .event import Event
+
+from h9.asyncmsgstream import H9msgStream
+from h9.msg import H9subscribe
 
 class H9busFeeder:
     def __init__(self):
         self.subscribers = []
         self.stream = None
 
-    def add_subscribers(self, sub):
-        self.subscribers.append(sub)
-
-    def del_subscribers(self, sub):
-        self.subscribers.remove(sub)
-
     async def run(self):
+        self.msg_stream = H9msgStream("127.0.0.1", 7878)
         while True:
             try:
-                self.stream = await TCPClient().connect("localhost", 1234)
+                await self.msg_stream.connect()
+                self.msg_stream.writemsg(H9subscribe(H9subscribe.Content.FRAME))
             except StreamClosedError:
                 logging.error("Unable connect to h9bus")
                 await gen.sleep(10)
@@ -26,9 +25,8 @@ class H9busFeeder:
             logging.info("Connecting to h9bus")
             while True:
                 try:
-                    a = await self.stream.read_until(b"\n")
-                    a = a.decode('UTF-8')
-                    await gen.multi([sub.publish_h9bus_event(a) for sub in self.subscribers])
+                    msg = await self.msg_stream.readmsg()
+                    await Event.publish_to_all(msg)
                 except StreamClosedError:
                     logging.warning("Disconnected from h9bus")
                     await gen.sleep(5)

@@ -17,15 +17,15 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark text-light justify-content-between">
         <div class="container m-0 p-0 justify-content-start">
             <a class="navbar-brand" href="#">H9</a>
-            <ul class="navbar-nav">
+            <ul class="navbar-nav nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-                </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="#"><i class="fas fa-tools"></i> Raw frame</a>
+                    <a class="nav-link" href="#dashboard" data-toggle="tab"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-cogs"></i> Settings</a>
+                    <a class="nav-link active" href="#rawframe" data-toggle="tab"><i class="fas fa-tools"></i> Raw frame</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#settings" data-toggle="tab"><i class="fas fa-cogs"></i> Settings</a>
                 </li>
             </ul>
         </div>
@@ -40,8 +40,17 @@
 <main class="container-fluid flex-fill d-flex flex-column p-0">
     <div class="row no-gutters bg-light text-dark flex-fill">
         <div id="main-container" class="col d-flex justify-content-center align-items-center">
-            <p>Dashboard</p>
-            <ul id="event"></ul>
+            <div class="tab-content">
+                <div class="tab-pane" id="dashboard">
+                    <p>Dashboard</p>
+                </div>
+                <div class="tab-pane show active" id="rawframe">
+                    <ul id="event"></ul>
+                </div>
+                <div class="tab-pane" id="settings">
+                    <p>Settings tab content ...</p>
+                </div>
+            </div>
         </div>
     </div>
     <div id="terminal-dragbar" class="row no-gutters bg-dark">
@@ -68,12 +77,11 @@
 <script>
     source = new EventSource("http://127.0.0.1:8888/events");
     source.onmessage = function (event) {
-        // document.getElementById("lista-anten").innerHTML += event.data + "<br>";
         var ul = document.getElementById("event");
         var li = document.createElement("li");
         var tmp_json = JSON.parse(event.data);
         console.log(tmp_json);
-        li.appendChild(document.createTextNode(tmp_json.data));
+        li.appendChild(document.createTextNode(JSON.stringify(tmp_json.data)));
         li.className = "list-group-item";
         ul.appendChild(li);
     };

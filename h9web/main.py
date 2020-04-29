@@ -9,11 +9,11 @@ from h9web.event import Event
 from h9web.settings import get_app_settings, get_ssl_context, get_server_settings
 
 
-def make_handlers(loop, h9busfeeder, options):
+def make_handlers(loop, options):
     handlers = [
-        (r'/', IndexHandler, dict(loop=loop)),
+        (r'/', IndexHandler, dict(loop=loop, cli=options.cli)),
         (r'/cli', WsockHandler, dict(loop=loop)),
-        (r'/events', Event, dict(loop=loop, h9busfeeder=h9busfeeder))
+        (r'/events', Event, dict(loop=loop))
     ]
     return handlers
 
@@ -40,7 +40,7 @@ def main():
     loop = tornado.ioloop.IOLoop.current()
 
     h9bus_feeder = h9busfeeder.H9busFeeder()
-    app = make_app(make_handlers(loop, h9bus_feeder, options), get_app_settings(options))
+    app = make_app(make_handlers(loop, options), get_app_settings(options))
     ssl_ctx = get_ssl_context(options)
     server_settings = get_server_settings(options)
     app_listen(app, options.port, options.address, server_settings)

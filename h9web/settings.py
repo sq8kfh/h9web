@@ -37,7 +37,7 @@ define('maxconn', type=int, default=20,
        help='Maximum live connections (cli sessions) per client')
 define('version', type=bool, help='Show version information',
        callback=print_version)
-
+define('cli', default='/bin/bash', help='CLI path')
 
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 max_body_size = 1 * 1024 * 1024

@@ -212,10 +212,10 @@ class IndexHandler(MixinHandler, tornado.web.RequestHandler):
 
     executor = ThreadPoolExecutor(max_workers=cpu_count()*5)
 
-    def initialize(self, loop):
+    def initialize(self, loop, cli):
         super(IndexHandler, self).initialize(loop)
         self.debug = self.settings.get('debug', False)
-        #self.font = self.settings.get('font', '')
+        self.cli = cli
         self.result = dict(id=None, status=None, encoding=None)
 
     def write_error(self, status_code, **kwargs):
@@ -247,7 +247,7 @@ class IndexHandler(MixinHandler, tornado.web.RequestHandler):
             # anything printed here will show up in the pty, including the output
             # of this subprocess
             #os.execv('/Users/crowx/projekty/h9/h9/h9cli/h9cli', ['h9cli'])
-            os.execv('/bin/bash', ['bash'])
+            os.execv(self.cli, [self.cli.split('/')[-1]])
 
         flag = fcntl.fcntl(fd, fcntl.F_GETFD)
         fcntl.fcntl(fd, fcntl.F_SETFL, flag | os.O_NONBLOCK)
