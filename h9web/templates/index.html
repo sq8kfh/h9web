@@ -12,14 +12,15 @@
         }
     </style>
 </head>
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column overflow-hidden h-100">
 <header>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark text-light justify-content-between">
-        <div class="container m-0 p-0 justify-content-start">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark text-light">
+        <div class="container flex-row m-0 p-0 justify-content-start col">
             <a class="navbar-brand" href="#">H9</a>
             <ul class="navbar-nav nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="#dashboard" data-toggle="tab"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    <a class="nav-link" href="#dashboard" data-toggle="tab"><i class="fas fa-tachometer-alt"></i>
+                        Dashboard</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link active" href="#rawframe" data-toggle="tab"><i class="fas fa-tools"></i> Raw frame</a>
@@ -30,41 +31,41 @@
             </ul>
         </div>
         <form id="connect" action="" method="post" enctype="multipart/form-data" {%if debug%} novalidate{%end%}
-              class="form-inline">
-            <input type="hidden" id="term" name="term" value="xterm-256color">
+              class="form-inline m-0 p-0 justify-content-end col">
             {% module xsrf_form_html() %}
             <button type="submit" class="btn btn-outline-info"><i class="fas fa-terminal"></i> CLI</button>
         </form>
     </nav>
 </header>
-<main class="container-fluid flex-fill d-flex flex-column p-0">
-    <div class="row no-gutters bg-light text-dark flex-fill">
-        <div id="main-container" class="col d-flex justify-content-center align-items-center">
-            <div class="tab-content">
-                <div class="tab-pane" id="dashboard">
-                    <p>Dashboard</p>
+<main class="flex-grow-1 overflow-auto">
+    <div class="col d-flex justify-content-center overflow-auto p-0">
+        <div class="tab-content p-2">
+            <div class="tab-pane" id="dashboard">
+                <p>Dashboard</p>
+            </div>
+            <div class="tab-pane show active" id="rawframe">
+                <div class="overflow-auto">
+                    <div id="event">
+                    </div>
                 </div>
-                <div class="tab-pane show active" id="rawframe">
-                    <ul id="event"></ul>
-                </div>
-                <div class="tab-pane" id="settings">
-                    <p>Settings tab content ...</p>
-                </div>
+            </div>
+            <div class="tab-pane" id="settings">
+                <p>Settings tab content ...</p>
             </div>
         </div>
     </div>
-    <div id="terminal-dragbar" class="row no-gutters bg-dark">
+</main>
+<footer class="flex-grow-0 flex-shrink-1 bg-dark text-light">
+    <div id="terminal-dragbar" class="row">
         <div class="col"></div>
     </div>
-    <div class="row no-gutters bg-secondary">
-        <div class="col justify-content-center align-items-center">
-            <div id="terminal-container"></div>
-        </div>
+    <div class="row bg-secondary">
+        <div id="terminal-container" class="col"></div>
     </div>
-</main>
-<footer class="row no-gutters bg-dark text-light">
-    <div class="col d-flex justify-content-center align-items-center">
-        Copyright :)
+    <div class="row">
+        <div class="col d-flex justify-content-center align-items-center">
+            Copyright :)
+        </div>
     </div>
 </footer>
 
@@ -78,7 +79,7 @@
     source = new EventSource("http://127.0.0.1:8888/events");
     source.onmessage = function (event) {
         var ul = document.getElementById("event");
-        var li = document.createElement("li");
+        var li = document.createElement("div");
         var tmp_json = JSON.parse(event.data);
         console.log(tmp_json);
         li.appendChild(document.createTextNode(JSON.stringify(tmp_json.data)));

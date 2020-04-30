@@ -82,9 +82,11 @@ jQuery(function ($) {
 
         terminal = document.getElementById('terminal-container');
 
-        var cols = parseInt(terminal.clientWidth / style.width, 10) - 1;
+        //console.log('term w: ' + terminal.clientWidth );
+        //console.log('win w: ' + window.innerWidth);
+        //var cols = parseInt(terminal.clientWidth / style.width, 10) - 1;
         var rows = parseInt(terminal.clientHeight / style.height, 10);
-        //var cols = parseInt(window.innerWidth / style.width, 10) - 1;
+        var cols = parseInt(window.innerWidth / style.width, 10) - 1;
         //var rows = parseInt(window.innerHeight / style.height, 10);
         return {'cols': cols, 'rows': rows};
     }
