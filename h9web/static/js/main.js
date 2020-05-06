@@ -1,53 +1,15 @@
 var jQuery;
 
-
-(function () {
-    // For FormData without getter and setter
-    var proto = FormData.prototype,
-        data = {};
-
-    if (!proto.get) {
-        proto.get = function (name) {
-            if (data[name] === undefined) {
-                var input = document.querySelector('input[name="' + name + '"]'),
-                    value;
-                if (input) {
-                    if (input.type === 'file') {
-                        value = input.files[0];
-                    } else {
-                        value = input.value;
-                    }
-                    data[name] = value;
-                }
-            }
-            return data[name];
-        };
-    }
-
-    if (!proto.set) {
-        proto.set = function (name, value) {
-            data[name] = value;
-        };
-    }
-}());
-
-
 jQuery(function ($) {
-    var status = $('#status'),
-        button = $('.btn-primary'),
-        form_container = $('.form-container'),
-        terminal_container = $('#terminal-container'),
+    var terminal_container = $('#terminal-container'),
         terminal_dragbar = $('#terminal-dragbar'),
 
         style = {},
         form_id = '#connect',
-        debug = document.querySelector(form_id).noValidate,
         DISCONNECTED = 0,
         CONNECTING = 1,
         CONNECTED = 2,
-        state = DISCONNECTED,
-        messages = {1: 'This client is connecting ...', 2: 'This client is already connnected.'},
-        event_origin;
+        state = DISCONNECTED;
 
 
     function parse_xterm_style() {
@@ -65,12 +27,6 @@ jQuery(function ($) {
     }
 
 
-    function toggle_fullscreen(term) {
-        //$('#terminal .terminal').toggleClass('fullscreen');
-        term.fitAddon.fit();
-    }
-
-
     function current_geometry(term) {
         if (!style.width || !style.height) {
             try {
@@ -82,8 +38,6 @@ jQuery(function ($) {
 
         terminal = document.getElementById('terminal-container');
 
-        //console.log('term w: ' + terminal.clientWidth );
-        //console.log('win w: ' + window.innerWidth);
         //var cols = parseInt(terminal.clientWidth / style.width, 10) - 1;
         var rows = parseInt(terminal.clientHeight / style.height, 10);
         var cols = parseInt(window.innerWidth / style.width, 10) - 1;
@@ -103,41 +57,8 @@ jQuery(function ($) {
     }
 
 
-    function read_as_text_with_decoder(file, callback, decoder) {
+    function read_file_as_text(file, callback) {
         var reader = new window.FileReader();
-
-        if (decoder === undefined) {
-            decoder = new window.TextDecoder('utf-8', {'fatal': true});
-        }
-
-        reader.onload = function () {
-            var text;
-            try {
-                text = decoder.decode(reader.result);
-            } catch (TypeError) {
-                console.log('Decoding error happened.');
-            } finally {
-                if (callback) {
-                    callback(text);
-                }
-            }
-        };
-
-        reader.onerror = function (e) {
-            console.error(e);
-        };
-
-        reader.readAsArrayBuffer(file);
-    }
-
-
-    function read_as_text_with_encoding(file, callback, encoding) {
-        var reader = new window.FileReader();
-
-        if (encoding === undefined) {
-            encoding = 'utf-8';
-        }
-
         reader.onload = function () {
             if (callback) {
                 callback(reader.result);
@@ -148,51 +69,15 @@ jQuery(function ($) {
             console.error(e);
         };
 
-        reader.readAsText(file, encoding);
+        reader.readAsText(file, 'utf-8');
     }
 
 
-    function read_file_as_text(file, callback, decoder) {
-        if (!window.TextDecoder) {
-            read_as_text_with_encoding(file, callback, decoder);
-        } else {
-            read_as_text_with_decoder(file, callback, decoder);
-        }
-    }
-
-
-    function log_status(text, to_populate) {
-        console.log(text);
-        status.html(text.split('\n').join('<br/>'));
-
-        if (form_container.css('display') === 'none') {
-            form_container.show();
-        }
-    }
-
-
-    function ajax_complete_callback(resp) {
-        button.prop('disabled', false);
-
-        if (resp.status !== 200) {
-            log_status(resp.status + ': ' + resp.statusText, true);
-            state = DISCONNECTED;
-            return;
-        }
-
-        var msg = resp.responseJSON;
-        if (!msg.id) {
-            log_status(msg.status, true);
-            state = DISCONNECTED;
-            return;
-        }
-
+    function connect() {
         var ws_url = window.location.href.split(/\?|#/, 1)[0].replace('http', 'ws'),
             join = (ws_url[ws_url.length - 1] === '/' ? '' : '/'),
-            url = ws_url + join + 'cli?id=' + msg.id,
+            url = ws_url + join + 'cli?id=' + '1',
             sock = new window.WebSocket(url),
-            encoding = 'utf-8',
-            decoder = window.TextDecoder ? new window.TextDecoder(encoding) : encoding,
             terminal = document.getElementById('terminal-container'),
             term = new window.Terminal({
                 cursorBlink: true,
@@ -209,12 +94,6 @@ jQuery(function ($) {
         terminal_dragbar.css("height", 5);
 
         console.log(url);
-        if (!msg.encoding) {
-            console.log('Unable to detect the default encoding of your server');
-            msg.encoding = encoding;
-        } else {
-            console.log('The deault encoding of your server is ' + msg.encoding);
-        }
 
         function term_write(text) {
             if (term) {
@@ -225,31 +104,6 @@ jQuery(function ($) {
                 }
             }
         }
-
-        function set_encoding(new_encoding) {
-            // for console use
-            if (!new_encoding) {
-                console.log('An encoding is required');
-                return;
-            }
-
-            if (!window.TextDecoder) {
-                decoder = new_encoding;
-                encoding = decoder;
-                console.log('Set encoding to ' + encoding);
-            } else {
-                try {
-                    decoder = new window.TextDecoder(new_encoding);
-                    encoding = decoder.encoding;
-                    console.log('Set encoding to ' + encoding);
-                } catch (RangeError) {
-                    console.log('Unknown encoding ' + new_encoding);
-                    return false;
-                }
-            }
-        }
-
-        set_encoding(msg.encoding);
 
         term.on_resize = function (cols, rows) {
             if (cols !== this.cols || rows !== this.rows) {
@@ -266,7 +120,6 @@ jQuery(function ($) {
 
         sock.onopen = function () {
             term.open(terminal);
-            //toggle_fullscreen(term);
             term.fitAddon.fit();
             resize_terminal(term)
             term.focus();
@@ -274,7 +127,7 @@ jQuery(function ($) {
         };
 
         sock.onmessage = function (msg) {
-            read_file_as_text(msg.data, term_write, decoder);
+            read_file_as_text(msg.data, term_write);
         };
 
         sock.onerror = function (e) {
@@ -285,7 +138,7 @@ jQuery(function ($) {
             term.dispose();
             term = undefined;
             sock = undefined;
-            log_status(e.reason, true);
+            console.log(e.reason);
             state = DISCONNECTED;
             terminal_container.css("height", '');
             terminal_dragbar.css("height", 0);
@@ -307,16 +160,13 @@ jQuery(function ($) {
             $(document).mousemove(function (ex) {
                 var cellheight = term._core._renderService._renderer.dimensions.actualCellHeight;
                 var tmp_height = (window.innerHeight - ex.pageY);
-                tmp_height = (tmp_height/cellheight>>0);// Math.floor(tmp_height / cellheight);
+                tmp_height = (tmp_height / cellheight >> 0);// Math.floor(tmp_height / cellheight);
                 if (tmp_height < 1) {
                     tmp_height = 1;
                 }
                 tmp_height = tmp_height * cellheight;
                 terminal_container.css("height", tmp_height);
                 term.fitAddon.fit();
-                //console.log('mousemove ' + ex.pageY + ' cellH ' + cellheight);
-                //console.log('newH: ' + tmp_height);
-
             });
         });
 
@@ -331,69 +181,16 @@ jQuery(function ($) {
     }
 
 
-    function connect() {
+    $(form_id).submit(function (event) {
+        event.preventDefault();
+
         if (state !== DISCONNECTED) {
-            console.log(messages[state]);
+            console.log('This CLI is already connnected.');
             return;
         }
 
-        var form = document.querySelector(form_id),
-            url = form.action,
-            data;
-
-        data = new FormData(form);
-
-        function ajax_post() {
-            status.text('');
-            button.prop('disabled', true);
-
-            $.ajax({
-                url: url,
-                type: 'post',
-                data: data,
-                complete: ajax_complete_callback,
-                cache: false,
-                contentType: false,
-                processData: false
-            });
-        }
-
-        ajax_post();
-
-        state = CONNECTING;
-    }
-
-
-    $(form_id).submit(function (event) {
-        event.preventDefault();
         connect();
+        state = CONNECTING;
     });
 
-    /*
-      function cross_origin_connect(event)
-      {
-        console.log(event.origin);
-        var prop = 'connect',
-            args;
-
-        try {
-          args = JSON.parse(event.data);
-        } catch (SyntaxError) {
-          args = event.data.split('|');
-        }
-
-        if (!Array.isArray(args)) {
-          args = [args];
-        }
-
-        try {
-          event_origin = event.origin;
-        } finally {
-          event_origin = undefined;
-        }
-      }
-
-      window.addEventListener('message', cross_origin_connect, false);
-
-    form_container.show();*/
 });

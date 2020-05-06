@@ -1,54 +1,60 @@
+import os
 import logging
 import tornado.web
 import tornado.ioloop
 
 from tornado.options import options
-from h9web import handler, h9busfeeder
-from h9web.handler import IndexHandler, WsockHandler, NotFoundHandler
+from h9web import handler, h9bus
+from h9web.cli import CliWSHandler
+from h9web.handler import IndexHandler, LoginHandler, LogoutHandler
 from h9web.event import Event
-from h9web.settings import get_app_settings, get_ssl_context, get_server_settings
+from h9web.api import H9webAPI
+from h9web.settings import get_ssl_context, get_server_settings
 
 
-def make_handlers(loop, options):
-    handlers = [
-        (r'/', IndexHandler, dict(loop=loop, cli=options.cli)),
-        (r'/cli', WsockHandler, dict(loop=loop)),
-        (r'/events', Event, dict(loop=loop))
-    ]
-    return handlers
-
-
-def make_app(handlers, settings):
-    settings.update(default_handler_class=NotFoundHandler)
-    return tornado.web.Application(handlers, **settings)
-
-
-def app_listen(app, port, address, server_settings):
-    app.listen(port, address, **server_settings)
-    if not server_settings.get('ssl_options'):
-        server_type = 'http'
-    else:
-        server_type = 'https'
-        handler.redirecting = True if options.redirect else False
-    logging.info(
-        'Listening on {}:{} ({})'.format(address, port, server_type)
-    )
-
+class Application(tornado.web.Application):
+    def __init__(self, options, h9bus_int, loop):
+        handlers = [
+            (r'/', IndexHandler),  # , dict(loop=loop, cli=options.cli)),
+            (r'/login', LoginHandler),
+            (r'/logout', LogoutHandler),
+            (r'/cli', CliWSHandler, dict(loop=loop)),
+            (r'/events', Event),
+            (r'/api/sendframe', H9webAPI, dict(h9bus_int=h9bus_int)),
+        ]
+        settings = dict(
+            template_path=os.path.join(os.path.dirname(__file__), 'templates'),
+            static_path=os.path.join(os.path.dirname(__file__), 'static'),
+            login_url='/login',
+            cookie_secret='__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__',
+            websocket_ping_interval=options.wpintvl,
+            xsrf_cookies=options.xsrf,
+            debug=options.debug,
+            sslport=options.sslport,
+            redirect=options.redirect,
+            cli=options.cli
+        )
+        super(Application, self).__init__(handlers, **settings)
 
 def main():
     options.parse_command_line()
     loop = tornado.ioloop.IOLoop.current()
 
-    h9bus_feeder = h9busfeeder.H9busFeeder()
-    app = make_app(make_handlers(loop, options), get_app_settings(options))
+    h9bus_int = h9bus.H9bus()
+
+    app = Application(options, h9bus_int, loop)
+
     ssl_ctx = get_ssl_context(options)
     server_settings = get_server_settings(options)
-    app_listen(app, options.port, options.address, server_settings)
+
+    app.listen(options.port, options.address, **server_settings)
+    logging.info('Listening on {}:{} (http)'.format(options.port, options.address))
     if ssl_ctx:
         server_settings.update(ssl_options=ssl_ctx)
-        app_listen(app, options.sslport, options.ssladdress, server_settings)
+        app.listen(options.sslport, options.ssladdress, **server_settings)
+        logging.info('Listening on {}:{} (https)'.format(options.sslport, options.ssladdress))
 
-    loop.spawn_callback(h9bus_feeder.run)
+    loop.spawn_callback(h9bus_int.run)
     loop.start()
 
 

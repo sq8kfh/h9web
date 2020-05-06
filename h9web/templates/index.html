@@ -2,7 +2,7 @@
 <html lang="en" class="h-100">
 <head>
     <meta charset="UTF-8">
-    <title> H9 </title>
+    <title>H9</title>
     <link href="static/img/favicon.png" rel="icon" type="image/png">
     <link href="static/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
     <link href="static/css/xterm.css" rel="stylesheet" type="text/css"/>
@@ -41,16 +41,13 @@
     <div class="col d-flex justify-content-center overflow-auto p-0">
         <div class="tab-content p-2">
             <div class="tab-pane" id="dashboard">
-                <p>Dashboard</p>
+                {% module Template('dashboard_tab.html') %}
             </div>
             <div class="tab-pane show active" id="rawframe">
-                <div class="overflow-auto">
-                    <div id="event">
-                    </div>
-                </div>
+                {% module Template('rawframe_tab.html') %}
             </div>
             <div class="tab-pane" id="settings">
-                <p>Settings tab content ...</p>
+                {% module Template('settings_tab.html') %}
             </div>
         </div>
     </div>
@@ -70,22 +67,27 @@
 </footer>
 
 <script src="static/js/jquery.min.js"></script>
+<script src="static/js/jquery.serialize-object.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/xterm.js"></script>
 <script src="static/js/xterm-addon-fit.js"></script>
 <script src="https://kit.fontawesome.com/ca82fc5857.js" crossorigin="anonymous"></script>
 <script src="static/js/main.js"></script>
+<script src="static/js/rawframe_tab.js"></script>
+<!--<script src="{{ static_url('js/rawframe_tab.js') }}"></script>-->
 <script>
     source = new EventSource("http://127.0.0.1:8888/events");
+
+    const Frame = ({ priority, type, seqnum, source, destination, dlc, data }) => `<div class="alert alert-info">
+    <strong>${source}</strong> -> <strong>${destination}</strong> priority: <strong>${priority}</strong> type: <strong>${type}</strong> seqnum:  <strong>${seqnum}</strong> dlc: <strong>${dlc}</strong> data: <strong>${data.join(' ')}</strong>
+    </div>`
+
     source.onmessage = function (event) {
-        var ul = document.getElementById("event");
-        var li = document.createElement("div");
         var tmp_json = JSON.parse(event.data);
         console.log(tmp_json);
-        li.appendChild(document.createTextNode(JSON.stringify(tmp_json.data)));
-        li.className = "list-group-item";
-        ul.appendChild(li);
+        $('#frame_list').append(Frame(tmp_json.data))
     };
+
 </script>
 </body>
 </html>

@@ -1,0 +1,53 @@
+<div class="card mb-2 p-3 shadow-sm">
+<form id="sendframe_form">
+    <div class="form-row align-items-center justify-content-center">
+        <div class="form-group col-auto">
+            <label for="inputPriority">Priority</label>
+            <select id="inputPriority" name="priority" size="1" class="form-control custom-select">
+                <option>H</option>
+                <option selected>L</option>
+            </select>
+        </div>
+        <div class="form-group col-auto">
+            <label for="inputType">Type</label>
+            <select id="inputType" name ="type" class="form-control custom-select">
+                {% from h9.msg import H9frame %}
+                {% for t in H9frame.Type %}
+                <option value="{{ t.value }}">{{ t.name }}</option>
+                {% end %}
+            </select>
+        </div>
+        <div class="form-group col-auto">
+            <label for="inputSeqnum">Seqnum</label>
+            <input type="number" name="seqnum" class="form-control" id="inputSeqnum" min="0" max="31" size="2" value="0">
+        </div>
+        <div class="form-group col-auto">
+            <label for="inputSource">Source</label>
+            <input type="number" name="source" class="form-control" id="inputSource" min="0" max="511" size="3" value="0">
+        </div>
+        <div class="form-group col-auto">
+            <label for="inputDestination">Destination</label>
+            <input type="number" name="destination" class="form-control" id="inputDestination" min="0" max="511" size="3" value="0">
+        </div>
+        <div class="form-group col">
+            <label for="inputData">Data</label>
+            <fieldset id="inputData"class="input-group">
+                <input name="data[0]" type="text" class="form-control" size="2" maxlength="2" placeholder="">
+                <input name="data[1]" type="text" class="form-control" size="2" maxlength="2" placeholder="">
+                <input name="data[2]" type="text" class="form-control" size="2" maxlength="2" placeholder="">
+                <input name="data[3]" type="text" class="form-control" size="2" maxlength="2" placeholder="">
+                <input name="data[4]" type="text" class="form-control" size="2" maxlength="2" placeholder="">
+                <input name="data[5]" type="text" class="form-control" size="2" maxlength="2" placeholder="">
+                <input name="data[6]" type="text" class="form-control" size="2" maxlength="2" placeholder="">
+                <input name="data[7]" type="text" class="form-control" size="2" maxlength="2" placeholder="">
+            </fieldset>
+        </div>
+    </div>
+    <div class="form-row justify-content-end m-0">
+        {% module xsrf_form_html() %}
+        <button id="sendframe_button" type="submit" class="btn btn-primary mb-2">Send frame</button>
+    </div>
+</form>
+</div>
+<div id="frame_list">
+</div>

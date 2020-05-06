@@ -120,5 +120,5 @@ class Worker(object):
         os.kill(self.pid, signal.SIGTERM)
         logging.info('Kill subprocess {}'.format(self.pid))
 
-        clear_worker(self, clients)
+        #clear_worker(self, clients)
         logging.debug(clients)
