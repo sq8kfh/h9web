@@ -22,10 +22,12 @@ class Event(BaseAPIHandler):
 
     async def publish_h9bus_frame(self, msg):
         try:
-            dict_data = {"type": "h9frame", "data": msg.to_dict()}
-            json_data = json.dumps(dict_data)
+            #dict_data = {"type": "h9frame", "data": msg.to_dict()}
+            #json_data = json.dumps(dict_data)
+            json_data = json.dumps(msg.to_dict())
             logging.debug('Event send {!r}'.format(json_data))
 
+            self.write('event: h9frame\n')
             self.write('data: {}\n\n'.format(json_data))
             await self.flush()
         except StreamClosedError:
@@ -33,6 +35,12 @@ class Event(BaseAPIHandler):
 
     @tornado.web.authenticated
     async def get(self):
+        try:
+            self.write('event: connection\n')
+            self.write('data: established\n\n')
+            await self.flush()
+        except StreamClosedError:
+            self.run = False
         while self.run:
             await tornado.web.gen.sleep(10)
 

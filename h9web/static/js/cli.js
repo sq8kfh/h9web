@@ -1,38 +1,29 @@
 var jQuery;
 
 jQuery(function ($) {
-    var terminal_container = $('#terminal-container'),
-        terminal_dragbar = $('#terminal-dragbar'),
-
-        style = {},
-        form_id = '#connect',
-        DISCONNECTED = 0,
-        CONNECTING = 1,
-        CONNECTED = 2,
-        state = DISCONNECTED;
-
-
-    function parse_xterm_style() {
-        var text = $('.xterm-helpers style').text();
-        var arr = text.split('xterm-normal-char{width:');
-        style.width = parseFloat(arr[1]);
-        arr = text.split('div{height:');
-        style.height = parseFloat(arr[1]);
-    }
-
-
-    function get_cell_size(term) {
-        style.width = term._core._renderService._renderer.dimensions.actualCellWidth;
-        style.height = term._core._renderService._renderer.dimensions.actualCellHeight;
-    }
-
+    var terminal_container = $('#terminal-container');
+    var terminal_dragbar = $('#terminal-dragbar');
+    var cli_button = $('#cli-button');
+    var cli_indicator = $('#cli-indicator');
+    var style = {};
+    var DISCONNECTED = 0;
+    var CONNECTING = 1;
+    var CONNECTED = 2;
+    var CONNECTED_HIDE = 4;
+    var state = DISCONNECTED;
+    var term;
 
     function current_geometry(term) {
         if (!style.width || !style.height) {
             try {
-                get_cell_size(term);
+                style.width = term._core._renderService._renderer.dimensions.actualCellWidth;
+                style.height = term._core._renderService._renderer.dimensions.actualCellHeight;
             } catch (TypeError) {
-                parse_xterm_style();
+                var text = $('.xterm-helpers style').text();
+                var arr = text.split('xterm-normal-char{width:');
+                style.width = parseFloat(arr[1]);
+                arr = text.split('div{height:');
+                style.height = parseFloat(arr[1]);
             }
         }
 
@@ -74,12 +65,12 @@ jQuery(function ($) {
 
 
     function connect() {
-        var ws_url = window.location.href.split(/\?|#/, 1)[0].replace('http', 'ws'),
-            join = (ws_url[ws_url.length - 1] === '/' ? '' : '/'),
-            url = ws_url + join + 'cli?id=' + '1',
-            sock = new window.WebSocket(url),
-            terminal = document.getElementById('terminal-container'),
-            term = new window.Terminal({
+        var ws_url = window.location.href.split(/\?|#/, 1)[0].replace('http', 'ws');
+        var join = (ws_url[ws_url.length - 1] === '/' ? '' : '/');
+        var url = ws_url + join + 'cli?id=' + '1';
+        var sock = new window.WebSocket(url);
+        var terminal = document.getElementById('terminal-container');
+        term = new window.Terminal({
                 cursorBlink: true,
                 rows: 20,
                 screenReaderMode: true,
@@ -119,11 +110,15 @@ jQuery(function ($) {
         });
 
         sock.onopen = function () {
+            terminal_container.removeClass('d-none');
+            terminal_dragbar.removeClass('d-none');
             term.open(terminal);
             term.fitAddon.fit();
             resize_terminal(term)
             term.focus();
             state = CONNECTED;
+            cli_indicator.removeClass('invisible');
+            cli_button.addClass('active');
         };
 
         sock.onmessage = function (msg) {
@@ -140,6 +135,8 @@ jQuery(function ($) {
             sock = undefined;
             console.log(e.reason);
             state = DISCONNECTED;
+            cli_indicator.addClass('invisible');
+            cli_button.removeClass('active');
             terminal_container.css("height", '');
             terminal_dragbar.css("height", 0);
             $(document).unbind('mousemove');
@@ -180,17 +177,23 @@ jQuery(function ($) {
         });
     }
 
-
-    $(form_id).submit(function (event) {
-        event.preventDefault();
-
-        if (state !== DISCONNECTED) {
-            console.log('This CLI is already connnected.');
-            return;
+    cli_button.click(function() {
+        if (state === DISCONNECTED) {
+            connect();
+            state = CONNECTING;
         }
-
-        connect();
-        state = CONNECTING;
+        else if (state === CONNECTED_HIDE) {
+            terminal_container.removeClass('d-none');
+            terminal_dragbar.removeClass('d-none');
+            cli_button.addClass('active');
+            term.focus();
+            state = CONNECTED;
+        }
+        else if (state === CONNECTED) {
+            terminal_container.addClass('d-none');
+            terminal_dragbar.addClass('d-none');
+            cli_button.removeClass('active');
+            state = CONNECTED_HIDE;
+        }
     });
-
 });

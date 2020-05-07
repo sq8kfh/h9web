@@ -14,7 +14,7 @@
 </head>
 <body class="d-flex flex-column overflow-hidden h-100">
 <header>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark text-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark text-light p-2">
         <div class="container flex-row m-0 p-0 justify-content-start col">
             <a class="navbar-brand" href="#">H9</a>
             <ul class="navbar-nav nav">
@@ -30,11 +30,8 @@
                 </li>
             </ul>
         </div>
-        <form id="connect" action="" method="post" enctype="multipart/form-data" {%if debug%} novalidate{%end%}
-              class="form-inline m-0 p-0 justify-content-end col">
-            {% module xsrf_form_html() %}
-            <button type="submit" class="btn btn-outline-info"><i class="fas fa-terminal"></i> CLI</button>
-        </form>
+        <button id="cli-button" type="button" class="btn btn-outline-info"><i class="fas fa-terminal"></i> CLI</button>
+        <a href="/logout" class="btn btn-outline-info ml-1"><i class="fas fa-sign-out-alt"></i></a>
     </nav>
 </header>
 <main class="flex-grow-1 overflow-auto">
@@ -60,34 +57,55 @@
         <div id="terminal-container" class="col"></div>
     </div>
     <div class="row">
-        <div class="col d-flex justify-content-center align-items-center">
-            Copyright :)
+        <div class="container-fluid d-flex justify-content-between">
+            <div class="ml-2"></div>
+            <div class="d-flex justify-content-center align-items-center">
+                Copyright :)
+            </div>
+            <div class="d-flex justify-content-end align-items-center mr-2">
+                <i id="cli-indicator" class="fas fa-terminal invisible" title="CLI connected"></i>
+                <i id="sse-indicator" class="fas fa-plug invisible" title="SSE connected"></i>
+            </div>
         </div>
     </div>
 </footer>
 
 <script src="static/js/jquery.min.js"></script>
 <script src="static/js/jquery.serialize-object.min.js"></script>
+<!--<script src="static/js/popper.min.js"></script>-->
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/xterm.js"></script>
 <script src="static/js/xterm-addon-fit.js"></script>
 <script src="https://kit.fontawesome.com/ca82fc5857.js" crossorigin="anonymous"></script>
-<script src="static/js/main.js"></script>
+<script src="static/js/cli.js"></script>
 <script src="static/js/rawframe_tab.js"></script>
-<!--<script src="{{ static_url('js/rawframe_tab.js') }}"></script>-->
 <script>
-    source = new EventSource("http://127.0.0.1:8888/events");
+    var sse;
+    function setupSSE(reconnect_time) {
+        var sse_url = window.location.href.split(/\?|#/, 1)[0] + 'events';
+        sse = new EventSource(sse_url);
 
-    const Frame = ({ priority, type, seqnum, source, destination, dlc, data }) => `<div class="alert alert-info">
-    <strong>${source}</strong> -> <strong>${destination}</strong> priority: <strong>${priority}</strong> type: <strong>${type}</strong> seqnum:  <strong>${seqnum}</strong> dlc: <strong>${dlc}</strong> data: <strong>${data.join(' ')}</strong>
-    </div>`
+        const Frame = ({priority, type, seqnum, source, destination, dlc, data}) => `<div class="alert alert-info"><strong>${source}</strong> -> <strong>${destination}</strong> priority: <strong>${priority}</strong> type: <strong>${type}</strong> seqnum:  <strong>${seqnum}</strong> dlc: <strong>${dlc}</strong> data: <strong>${data.join(' ')}</strong></div>`
 
-    source.onmessage = function (event) {
-        var tmp_json = JSON.parse(event.data);
-        console.log(tmp_json);
-        $('#frame_list').append(Frame(tmp_json.data))
-    };
+        sse.addEventListener("connection", function (e) {
+            console.log("sse connection: " + e.data);
+            $('#sse-indicator').removeClass('invisible');
+        });
 
+        sse.addEventListener("h9frame", function (e) {
+            var tmp_json = JSON.parse(e.data);
+            console.log('sse h9frame: ' + e.data);
+            $('#frame_list').append(Frame(tmp_json))
+        });
+
+        sse.onerror = function () {
+            console.log("sse error");
+            $('#sse-indicator').addClass('invisible');
+            window.setTimeout(setupSSE, reconnect_time, reconnect_time*2 > 15000 ? 15000 : reconnect_time*2);
+        };
+        return sse;
+    }
+    sse = setupSSE(1000);
 </script>
 </body>
 </html>
