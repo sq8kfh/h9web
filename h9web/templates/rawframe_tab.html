@@ -11,8 +11,8 @@
             <div class="form-group col-auto">
                 <label for="inputType">Type</label>
                 <select id="inputType" name="type" class="form-control custom-select">
-                    {% from h9.msg import H9frame %}
-                    {% for t in H9frame.Type %}
+                    {% from h9.msg import H9Frame %}
+                    {% for t in H9Frame.Type %}
                     <option value="{{ t.value }}">{{ t.name }}</option>
                     {% end %}
                 </select>

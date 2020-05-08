@@ -1,8 +1,9 @@
+import logging
 import tornado.web
 import json
 import traceback
 from h9web.handler import BaseHandler
-from h9.msg import H9frame
+from h9.msg import H9SendFrame
 
 
 class BaseAPIHandler(BaseHandler):
@@ -44,12 +45,11 @@ class H9webAPI(BaseAPIHandler):
     def post(self):
         try:
             msg = json.loads(self.request.body)
-            frame = H9frame(priority=H9frame.Priority[msg['priority']], type=H9frame.Type(int(msg['type'])), seqnum=int(msg['seqnum']), source=int(msg['source']),
+            frame = H9SendFrame(priority=H9SendFrame.Priority[msg['priority']], type=H9SendFrame.Type(int(msg['type'])), seqnum=int(msg['seqnum']), source=int(msg['source']),
                             destination=int(msg['destination']), data=msg['data'])
         except json.JSONDecodeError:
             raise tornado.web.HTTPError(400, reason='Invalid JSON')
         except ValueError:
             raise tornado.web.HTTPError(400, reason='Invalid frame parameters')
-        print(msg)
-        print(frame)
+        logging.debug('Send frame: ' + str(frame))
         self.h9bus.send_frame(frame)

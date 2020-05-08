@@ -85,7 +85,7 @@
         var sse_url = window.location.href.split(/\?|#/, 1)[0] + 'events';
         sse = new EventSource(sse_url);
 
-        const Frame = ({priority, type, seqnum, source, destination, dlc, data}) => `<div class="alert alert-info"><strong>${source}</strong> -> <strong>${destination}</strong> priority: <strong>${priority}</strong> type: <strong>${type}</strong> seqnum:  <strong>${seqnum}</strong> dlc: <strong>${dlc}</strong> data: <strong>${data.join(' ')}</strong></div>`
+        const Frame = ({priority, type, seqnum, source, destination, dlc, data, origin}) => `<div class="alert alert-info"><strong>${source}</strong> (<strong>${origin}</strong>) -> <strong>${destination}</strong> priority: <strong>${priority}</strong> type: <strong>${type}</strong> seqnum:  <strong>${seqnum}</strong> dlc: <strong>${dlc}</strong> data: <strong>${data.join(' ')}</strong></div>`
 
         sse.addEventListener("connection", function (e) {
             console.log("sse connection: " + e.data);
@@ -95,17 +95,17 @@
         sse.addEventListener("h9frame", function (e) {
             var tmp_json = JSON.parse(e.data);
             console.log('sse h9frame: ' + e.data);
-            $('#frame_list').append(Frame(tmp_json))
+            $('#frame_list').prepend(Frame(tmp_json))
         });
 
         sse.onerror = function () {
             console.log("sse error");
             $('#sse-indicator').addClass('invisible');
+            sse.close();
             window.setTimeout(setupSSE, reconnect_time, reconnect_time*2 > 15000 ? 15000 : reconnect_time*2);
         };
-        return sse;
     }
-    sse = setupSSE(1000);
+    setupSSE(1000);
 </script>
 </body>
 </html>

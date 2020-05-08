@@ -4,7 +4,7 @@ import json
 import tornado.web
 from tornado.iostream import StreamClosedError
 from h9web.api import BaseAPIHandler
-from h9.msg import H9frame
+from h9.msg import H9Frame
 
 
 #TODO: https://github.com/mpetazzoni/sse.js ?
@@ -52,6 +52,5 @@ class Event(BaseAPIHandler):
 
     @classmethod
     async def publish_to_all(cls, message):
-        print("Writing to Clients")
-        if isinstance(message, H9frame):
+        if isinstance(message, H9Frame):
             await tornado.web.gen.multi([sub.publish_h9bus_frame(message) for sub in cls.subscribers])
