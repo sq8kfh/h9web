@@ -19,7 +19,7 @@ class Application(tornado.web.Application):
             (r'/login', LoginHandler),
             (r'/logout', LogoutHandler),
             (r'/cli', CliWSHandler, dict(loop=loop)),
-            (r'/events', Event),
+            (r'/events', Event, dict(h9bus_int=h9bus_int)),
             (r'/api/sendframe', H9webAPI, dict(h9bus_int=h9bus_int)),
         ]
         settings = dict(

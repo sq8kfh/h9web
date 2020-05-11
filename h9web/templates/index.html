@@ -26,6 +26,9 @@
                     <a class="nav-link active" href="#rawframe" data-toggle="tab"><i class="fas fa-tools"></i> Raw frame</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="#stats" data-toggle="tab"><i class="fas fa-chart-bar"></i> Stats</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="#settings" data-toggle="tab"><i class="fas fa-cogs"></i> Settings</a>
                 </li>
             </ul>
@@ -42,6 +45,9 @@
             </div>
             <div class="tab-pane show active" id="rawframe">
                 {% module Template('rawframe_tab.html') %}
+            </div>
+            <div class="tab-pane" id="stats">
+                {% module Template('stats_tab.html') %}
             </div>
             <div class="tab-pane" id="settings">
                 {% module Template('settings_tab.html') %}
@@ -81,6 +87,7 @@
 <script src="static/js/rawframe_tab.js"></script>
 <script>
     var sse;
+
     function setupSSE(reconnect_time) {
         var sse_url = window.location.href.split(/\?|#/, 1)[0] + 'events';
         sse = new EventSource(sse_url);
@@ -98,13 +105,30 @@
             $('#frame_list').prepend(Frame(tmp_json))
         });
 
+        sse.addEventListener("h9bus_stat", function (e) {
+            var tmp_json = JSON.parse(e.data);
+            var h9bus_stat = tmp_json.value;
+            console.log('sse h9bus_stat: ' + e.data);
+            $('#h9bus_version').text(h9bus_stat.version);
+            $('#h9bus_uptime').text(h9bus_stat.uptime);
+            $('#h9bus_coneccted_clients').text(h9bus_stat.connected_clients_count);
+            for (const endpoint in h9bus_stat.endpoint) {
+                endpoint_data = h9bus_stat.endpoint[endpoint];
+                console.log(endpoint_data);
+                $('#h9bus_endpoint_name').text(endpoint_data.name);
+                $('#h9bus_endpoint_sent').text(endpoint_data.send_frames_counter);
+                $('#h9bus_endpoint_recv').text(endpoint_data.received_frames_counter);
+            }
+        });
+
         sse.onerror = function () {
             console.log("sse error");
             $('#sse-indicator').addClass('invisible');
             sse.close();
-            window.setTimeout(setupSSE, reconnect_time, reconnect_time*2 > 15000 ? 15000 : reconnect_time*2);
+            window.setTimeout(setupSSE, reconnect_time, reconnect_time * 2 > 15000 ? 15000 : reconnect_time * 2);
         };
     }
+
     setupSSE(1000);
 </script>
 </body>

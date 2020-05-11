@@ -27,7 +27,6 @@ class H9bus:
             while True:
                 try:
                     msg = await self.msg_stream.readmsg()
-                    #print(msg)
                     await Event.publish_to_all(msg)
                 except StreamClosedError:
                     logging.warning("Disconnected from h9bus")

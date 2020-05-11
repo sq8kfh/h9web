@@ -4,13 +4,14 @@ import json
 import tornado.web
 from tornado.iostream import StreamClosedError
 from h9web.api import BaseAPIHandler
-from h9.msg import H9Frame
+from h9.msg import H9Frame, H9Call, H9Response
 
 
 #TODO: https://github.com/mpetazzoni/sse.js ?
 
 class Event(BaseAPIHandler):
-    def initialize(self):
+    def initialize(self, h9bus_int):
+        self.h9bus = h9bus_int
         self.set_header('Content-Type', 'text/event-stream')
         self.set_header('Cache-Control', 'no-cache')
 
@@ -22,12 +23,21 @@ class Event(BaseAPIHandler):
 
     async def publish_h9bus_frame(self, msg):
         try:
-            #dict_data = {"type": "h9frame", "data": msg.to_dict()}
-            #json_data = json.dumps(dict_data)
             json_data = json.dumps(msg.to_dict())
             logging.debug('Event send {!r}'.format(json_data))
 
             self.write('event: h9frame\n')
+            self.write('data: {}\n\n'.format(json_data))
+            await self.flush()
+        except StreamClosedError:
+            self.run = False
+
+    async def publish_h9bus_stat(self, msg):
+        try:
+            json_data = json.dumps(msg.to_dict())
+            logging.debug('Event send {!r}'.format(json_data))
+
+            self.write('event: h9bus_stat\n')
             self.write('data: {}\n\n'.format(json_data))
             await self.flush()
         except StreamClosedError:
@@ -42,6 +52,8 @@ class Event(BaseAPIHandler):
         except StreamClosedError:
             self.run = False
         while self.run:
+            msg = H9Call('h9bus_stat')
+            self.h9bus.send_frame(msg)
             await tornado.web.gen.sleep(10)
 
     def on_finish(self):
@@ -54,3 +66,5 @@ class Event(BaseAPIHandler):
     async def publish_to_all(cls, message):
         if isinstance(message, H9Frame):
             await tornado.web.gen.multi([sub.publish_h9bus_frame(message) for sub in cls.subscribers])
+        if isinstance(message, H9Response) and message.method == 'h9bus_stat':
+            await tornado.web.gen.multi([sub.publish_h9bus_stat(message) for sub in cls.subscribers])
