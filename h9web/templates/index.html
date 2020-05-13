@@ -92,7 +92,10 @@
         var sse_url = window.location.href.split(/\?|#/, 1)[0] + 'events';
         sse = new EventSource(sse_url);
 
-        const Frame = ({priority, type, seqnum, source, destination, dlc, data, origin}) => `<div class="alert alert-info"><strong>${source}</strong> (<strong>${origin}</strong>) -> <strong>${destination}</strong> priority: <strong>${priority}</strong> type: <strong>${type}</strong> seqnum:  <strong>${seqnum}</strong> dlc: <strong>${dlc}</strong> data: <strong>${data.join(' ')}</strong></div>`
+        const Frame = ({priority, type, seqnum, source, destination, dlc, data, origin}) =>
+            `<div class="alert alert-info">
+                <strong>${source}</strong> (<strong>${origin}</strong>) -> <strong>${destination}</strong> priority: <strong>${priority}</strong> type: <strong>${type}</strong> seqnum:  <strong>${seqnum}</strong> dlc: <strong>${dlc}</strong> data: <strong>${data.join(' ')}</strong>
+             </div>`
 
         sse.addEventListener("connection", function (e) {
             console.log("sse connection: " + e.data);
@@ -112,13 +115,22 @@
             $('#h9bus_version').text(h9bus_stat.version);
             $('#h9bus_uptime').text(h9bus_stat.uptime);
             $('#h9bus_coneccted_clients').text(h9bus_stat.connected_clients_count);
-            for (const endpoint in h9bus_stat.endpoint) {
-                endpoint_data = h9bus_stat.endpoint[endpoint];
-                console.log(endpoint_data);
-                $('#h9bus_endpoint_name').text(endpoint_data.name);
-                $('#h9bus_endpoint_sent').text(endpoint_data.send_frames_counter);
-                $('#h9bus_endpoint_recv').text(endpoint_data.received_frames_counter);
-            }
+
+            const Endpoint = ({name, send_frames_counter, received_frames_counter}) =>
+                `<h6 id="h9bus_endpoint_name" class="card-subtitle mb-1 mt-3">${name}:</h6>
+                <div class="row">
+                    <div class="col-sm-5">Frames sent:</div>
+                    <div class="col" id="h9bus_endpoint_sent">${send_frames_counter}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-5">Frames received:</div>
+                    <div class="col" id="h9bus_endpoint_recv">${received_frames_counter}</div>
+                </div>`
+
+            endpoint_list = h9bus_stat.endpoint.map(function (endpoint) {
+                return Endpoint(endpoint);
+            }).join('');
+            $('#h9bus_endpoint').html(endpoint_list);
         });
 
         sse.onerror = function () {

@@ -1,41 +1,40 @@
-<div class="row align-content-start m-1">
-    <div class="col-auto mr-5">
-        <div class="row">
-            <h4>H9Bus</h4>
-        </div>
-        <div class="row">
-            <div class="col-6">Version:</div>
-            <div class="col-auto" id="h9bus_version">0.0.0</div>
-        </div>
-        <div class="row">
-            <div class="col-6">Uptime:</div>
-            <div class="col-auto" id="h9bus_uptime">3 hours 32 minutes 36 seconds</div>
-        </div>
-        <div class="row">
-            <div class="col-6">Connected clients:</div>
-            <div class="col-auto" id="h9bus_coneccted_clients">2</div>
-        </div>
-        <br>
-<!--        <div class="row">-->
-<!--            <h5>Endpoints:</h5>-->
-<!--        </div>-->
-        <div class="row">
-            <h5 id="h9bus_endpoint_name">can0:</h5>
-        </div>
-        <div class="row">
-            <div class="col-6">Frames sent:</div>
-            <div class="col-auto" id="h9bus_endpoint_sent">1235</div>
-        </div>
-        <div class="row">
-            <div class="col-6">Frames received:</div>
-            <div class="col-auto" id="h9bus_endpoint_recv">1231</div>
+<div class="card-columns">
+    <div class="card">
+        <div class="card-header">H9Bus</div>
+        <div class="card-body">
+            <div class="row card-text">
+                <div class="col-sm-5">Version:</div>
+                <div class="col" id="h9bus_version">0.0.0</div>
+            </div>
+            <div class="row">
+                <div class="col-sm-5">Uptime:</div>
+                <div class="col" id="h9bus_uptime">3 hours 32 minutes 36 seconds</div>
+            </div>
+            <div class="row">
+                <div class="col-sm-5">Connected clients:</div>
+                <div class="col" id="h9bus_coneccted_clients">2</div>
+            </div>
+            <div id="h9bus_endpoint"></div>
         </div>
     </div>
-    <div class="col-auto ml-5">
-        <h4>H9d</h4>
-        <div class="row">
-            <div class="col-6">Version:</div>
-            <div class="col-6">0.0.0</div>
+
+    <div class="card">
+        <div class="card-header">H9d</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-5">Version:</div>
+                <div class="col">0.0.0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">H9web</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-5">Version:</div>
+                <div class="col">{% from h9web._version import __version__ %}{{ __version__ }}</div>
+            </div>
         </div>
     </div>
 </div>

@@ -45,7 +45,7 @@ class H9webAPI(BaseAPIHandler):
     def post(self):
         try:
             msg = json.loads(self.request.body)
-            frame = H9SendFrame(priority=H9SendFrame.Priority[msg['priority']], type=H9SendFrame.Type(int(msg['type'])), seqnum=int(msg['seqnum']), source=int(msg['source']),
+            frame = H9SendFrame(priority=H9SendFrame.Priority[msg['priority']], frametype=H9SendFrame.FrameType(int(msg['type'])), seqnum=int(msg['seqnum']), source=int(msg['source']),
                             destination=int(msg['destination']), data=msg['data'])
         except json.JSONDecodeError:
             raise tornado.web.HTTPError(400, reason='Invalid JSON')

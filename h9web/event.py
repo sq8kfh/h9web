@@ -32,11 +32,32 @@ class Event(BaseAPIHandler):
         except StreamClosedError:
             self.run = False
 
+    def convert_uptime(self, n):
+        n = int(n)
+        day = n // (24 * 3600)
+        n = n % (24 * 3600)
+        hour = n // 3600
+        n %= 3600
+        minutes = n // 60
+        n %= 60
+        seconds = n
+        ret = ''
+        if day:
+            ret = ret + str(day)  + ' days'
+        if hour:
+            ret = ret + str(hour)  + ' hours '
+        if minutes:
+            ret = ret + str(minutes)  + ' minutes'
+        if not ret:
+            ret = ret + str(seconds)  + ' seconds'
+        return ret
+
     async def publish_h9bus_stat(self, msg):
         try:
-            json_data = json.dumps(msg.to_dict())
+            tmp = msg.to_dict()
+            tmp['value']['uptime'] = self.convert_uptime(tmp['value']['uptime'])
+            json_data = json.dumps(tmp)
             logging.debug('Event send {!r}'.format(json_data))
-
             self.write('event: h9bus_stat\n')
             self.write('data: {}\n\n'.format(json_data))
             await self.flush()
