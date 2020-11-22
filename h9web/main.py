@@ -4,23 +4,25 @@ import tornado.web
 import tornado.ioloop
 
 from tornado.options import options
-from h9web import handler, h9bus
+from h9web import h9bus
+from h9web import h9d
 from h9web.cli import CliWSHandler
 from h9web.handler import IndexHandler, LoginHandler, LogoutHandler
 from h9web.event import Event
-from h9web.api import H9webAPI
+from h9web.api import H9webAPI, DevAPI
 from h9web.settings import get_ssl_context, get_server_settings
 
 
 class Application(tornado.web.Application):
-    def __init__(self, options, h9bus_int, loop):
+    def __init__(self, options, h9bus_int, h9d_int, loop):
         handlers = [
             (r'/', IndexHandler),  # , dict(loop=loop, cli=options.cli)),
             (r'/login', LoginHandler),
             (r'/logout', LogoutHandler),
             (r'/cli', CliWSHandler, dict(loop=loop)),
-            (r'/events', Event, dict(h9bus_int=h9bus_int)),
+            (r'/events', Event, dict(h9bus_int=h9bus_int, h9d_int=h9d_int)),
             (r'/api/sendframe', H9webAPI, dict(h9bus_int=h9bus_int)),
+            (r'/api/dev', DevAPI, dict(h9d_int=h9d_int)),
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), 'templates'),
@@ -41,8 +43,9 @@ def main():
     loop = tornado.ioloop.IOLoop.current()
 
     h9bus_int = h9bus.H9bus()
+    h9d_int = h9d.H9d()
 
-    app = Application(options, h9bus_int, loop)
+    app = Application(options, h9bus_int, h9d_int, loop)
 
     ssl_ctx = get_ssl_context(options)
     server_settings = get_server_settings(options)
@@ -55,6 +58,7 @@ def main():
         logging.info('Listening on {}:{} (https)'.format(options.sslport, options.ssladdress))
 
     loop.spawn_callback(h9bus_int.run)
+    loop.spawn_callback(h9d_int.run)
     loop.start()
 
 

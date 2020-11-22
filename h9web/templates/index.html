@@ -6,6 +6,7 @@
     <link href="static/img/favicon.png" rel="icon" type="image/png">
     <link href="static/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
     <link href="static/css/xterm.css" rel="stylesheet" type="text/css"/>
+    <link href="static/css/h9web.css" rel="stylesheet" type="text/css"/>
     <style>
         #terminal-dragbar {
             cursor: row-resize;
@@ -19,11 +20,11 @@
             <a class="navbar-brand" href="#">H9</a>
             <ul class="navbar-nav nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="#dashboard" data-toggle="tab"><i class="fas fa-tachometer-alt"></i>
+                    <a class="nav-link active" href="#dashboard" data-toggle="tab"><i class="fas fa-tachometer-alt"></i>
                         Dashboard</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="#rawframe" data-toggle="tab"><i class="fas fa-tools"></i> Raw frame</a>
+                    <a class="nav-link" href="#rawframe" data-toggle="tab"><i class="fas fa-tools"></i> Raw frame</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#stats" data-toggle="tab"><i class="fas fa-chart-bar"></i> Stats</a>
@@ -40,10 +41,10 @@
 <main class="flex-grow-1 overflow-auto">
     <div class="col d-flex justify-content-center overflow-auto p-0">
         <div class="tab-content p-2">
-            <div class="tab-pane" id="dashboard">
+            <div class="tab-pane show active" id="dashboard">
                 {% module Template('dashboard_tab.html') %}
             </div>
-            <div class="tab-pane show active" id="rawframe">
+            <div class="tab-pane" id="rawframe">
                 {% module Template('rawframe_tab.html') %}
             </div>
             <div class="tab-pane" id="stats">
@@ -84,6 +85,7 @@
 <script src="static/js/xterm-addon-fit.js"></script>
 <script src="https://kit.fontawesome.com/ca82fc5857.js" crossorigin="anonymous"></script>
 <script src="static/js/cli.js"></script>
+<script src="static/js/dashboard_tab.js"></script>
 <script src="static/js/rawframe_tab.js"></script>
 <script>
     var sse;
@@ -131,6 +133,24 @@
                 return Endpoint(endpoint);
             }).join('');
             $('#h9bus_endpoint').html(endpoint_list);
+        });
+
+        sse.addEventListener("h9d_stat", function (e) {
+            var tmp_json = JSON.parse(e.data);
+            var h9d_stat = tmp_json.value;
+            console.log('sse h9bus_stat: ' + e.data);
+            $('#h9d_version').text(h9d_stat.version);
+            $('#h9d_uptime').text(h9d_stat.uptime);
+        });
+
+        sse.addEventListener("dev_event", function (e) {
+            var tmp_json = JSON.parse(e.data);
+            var dev_event = tmp_json.value;
+            console.log('sse dev_event: ' + e.data);
+            //console.log(dev_event);
+            procces_dev_event(dev_event["object"],dev_event.id,dev_event.method,dev_event.response);
+            //sse dev_event: {"method": "dev", "value": {"object": "antenna-switch", "id": "8", "method": "switch", "response": "1"}}
+            //$('#h9d_uptime').text(h9d_stat.uptime);
         });
 
         sse.onerror = function () {

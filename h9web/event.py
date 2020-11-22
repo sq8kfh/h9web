@@ -10,8 +10,9 @@ from h9.msg import H9Frame, H9Call, H9Response
 #TODO: https://github.com/mpetazzoni/sse.js ?
 
 class Event(BaseAPIHandler):
-    def initialize(self, h9bus_int):
+    def initialize(self, h9bus_int, h9d_int):
         self.h9bus = h9bus_int
+        self.h9d = h9d_int
         self.set_header('Content-Type', 'text/event-stream')
         self.set_header('Cache-Control', 'no-cache')
 
@@ -64,6 +65,29 @@ class Event(BaseAPIHandler):
         except StreamClosedError:
             self.run = False
 
+    async def publish_h9d_stat(self, msg):
+        try:
+            tmp = msg.to_dict()
+            tmp['value']['uptime'] = self.convert_uptime(tmp['value']['uptime'])
+            json_data = json.dumps(tmp)
+            logging.debug('Event send {!r}'.format(json_data))
+            self.write('event: h9d_stat\n')
+            self.write('data: {}\n\n'.format(json_data))
+            await self.flush()
+        except StreamClosedError:
+            self.run = False
+
+    async def publish_dev_event(self, msg):
+        try:
+            tmp = msg.to_dict()
+            json_data = json.dumps(tmp)
+            logging.debug('Event send {!r}'.format(json_data))
+            self.write('event: dev_event\n')
+            self.write('data: {}\n\n'.format(json_data))
+            await self.flush()
+        except StreamClosedError:
+            self.run = False
+
     @tornado.web.authenticated
     async def get(self):
         try:
@@ -75,7 +99,9 @@ class Event(BaseAPIHandler):
         while self.run:
             msg = H9Call('h9bus_stat')
             self.h9bus.send_frame(msg)
-            await tornado.web.gen.sleep(10)
+            msg = H9Call('h9d_stat')
+            self.h9d.send_msg(msg)
+            await tornado.web.gen.sleep(15)
 
     def on_finish(self):
         logging.info('Disconnected event subscribers {}:{}'.format(*self.context.address[:2]))
@@ -89,3 +115,7 @@ class Event(BaseAPIHandler):
             await tornado.web.gen.multi([sub.publish_h9bus_frame(message) for sub in cls.subscribers])
         if isinstance(message, H9Response) and message.method == 'h9bus_stat':
             await tornado.web.gen.multi([sub.publish_h9bus_stat(message) for sub in cls.subscribers])
+        if isinstance(message, H9Response) and message.method == 'h9d_stat':
+            await tornado.web.gen.multi([sub.publish_h9d_stat(message) for sub in cls.subscribers])
+        if isinstance(message, H9Response) and message.method == 'dev':
+            await tornado.web.gen.multi([sub.publish_dev_event(message) for sub in cls.subscribers])
