@@ -4,7 +4,7 @@ import json
 import tornado.web
 from tornado.iostream import StreamClosedError
 from h9web.api import BaseAPIHandler
-from h9.msg import H9Frame, H9Call, H9Response
+from h9.msg import H9Frame, H9ExecuteMethod, H9MethodResponse
 
 
 #TODO: https://github.com/mpetazzoni/sse.js ?
@@ -44,13 +44,13 @@ class Event(BaseAPIHandler):
         seconds = n
         ret = ''
         if day:
-            ret = ret + str(day)  + ' days'
+            ret = ret + str(day) + ' days'
         if hour:
-            ret = ret + str(hour)  + ' hours '
+            ret = ret + str(hour) + ' hours '
         if minutes:
-            ret = ret + str(minutes)  + ' minutes'
+            ret = ret + str(minutes) + ' minutes'
         if not ret:
-            ret = ret + str(seconds)  + ' seconds'
+            ret = ret + str(seconds) + ' seconds'
         return ret
 
     async def publish_h9bus_stat(self, msg):
@@ -97,9 +97,9 @@ class Event(BaseAPIHandler):
         except StreamClosedError:
             self.run = False
         while self.run:
-            msg = H9Call('h9bus_stat')
+            msg = H9ExecuteMethod('h9bus_stat')
             self.h9bus.send_frame(msg)
-            msg = H9Call('h9d_stat')
+            msg = H9ExecuteMethod('h9d_stat')
             self.h9d.send_msg(msg)
             await tornado.web.gen.sleep(15)
 
@@ -113,9 +113,9 @@ class Event(BaseAPIHandler):
     async def publish_to_all(cls, message):
         if isinstance(message, H9Frame):
             await tornado.web.gen.multi([sub.publish_h9bus_frame(message) for sub in cls.subscribers])
-        if isinstance(message, H9Response) and message.method == 'h9bus_stat':
+        if isinstance(message, H9MethodResponse) and message.method == 'h9bus_stat':
             await tornado.web.gen.multi([sub.publish_h9bus_stat(message) for sub in cls.subscribers])
-        if isinstance(message, H9Response) and message.method == 'h9d_stat':
+        if isinstance(message, H9MethodResponse) and message.method == 'h9d_stat':
             await tornado.web.gen.multi([sub.publish_h9d_stat(message) for sub in cls.subscribers])
-        if isinstance(message, H9Response) and message.method == 'dev':
+        if isinstance(message, H9MethodResponse) and message.method == 'dev':
             await tornado.web.gen.multi([sub.publish_dev_event(message) for sub in cls.subscribers])

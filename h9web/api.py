@@ -3,7 +3,7 @@ import tornado.web
 import json
 import traceback
 from h9web.handler import BaseHandler
-from h9.msg import H9SendFrame, H9Call
+from h9.msg import H9SendFrame, H9ExecuteMethod
 
 
 class BaseAPIHandler(BaseHandler):
@@ -64,7 +64,7 @@ class DevAPI(BaseAPIHandler):
     def post(self):
         try:
             req = json.loads(self.request.body)
-            msg = H9Call('dev')
+            msg = H9ExecuteMethod('dev')
             msg.value = {'object': req['object'], 'id': int(req['id']), 'method': req['method'], 'variable_antenna': int(req['variable']['antenna'])}
         except json.JSONDecodeError:
             raise tornado.web.HTTPError(400, reason='Invalid JSON')

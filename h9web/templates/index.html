@@ -141,6 +141,8 @@
             console.log('sse h9bus_stat: ' + e.data);
             $('#h9d_version').text(h9d_stat.version);
             $('#h9d_uptime').text(h9d_stat.uptime);
+            $('#h9d_coneccted_clients').text(h9d_stat.connected_clients_count);
+            $('#h9d_active_devices').text(h9d_stat.active_devices_count);
         });
 
         sse.addEventListener("dev_event", function (e) {

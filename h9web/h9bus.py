@@ -5,7 +5,7 @@ from tornado.iostream import StreamClosedError
 from .event import Event
 
 from h9.asyncmsgstream import H9msgStream
-from h9.msg import H9Subscribe
+from h9.msg import H9ExecuteMethod
 
 class H9bus:
     def __init__(self):
@@ -17,8 +17,10 @@ class H9bus:
         self.msg_stream = H9msgStream("127.0.0.1", 7878)
         while True:
             try:
-                await self.msg_stream.connect()
-                self.msg_stream.writemsg(H9Subscribe(H9Subscribe.Content.FRAME))
+                await self.msg_stream.connect("h9web")
+                exec_method = H9ExecuteMethod("subscribe")
+                exec_method.value = {'event': 'frame'}
+                self.msg_stream.writemsg(exec_method)
             except StreamClosedError:
                 logging.error("Unable connect to h9bus")
                 await gen.sleep(10)

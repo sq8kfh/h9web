@@ -17,7 +17,7 @@ class H9d:
         self.msg_stream = H9msgStream("127.0.0.1", 7979)
         while True:
             try:
-                await self.msg_stream.connect()
+                await self.msg_stream.connect("h9web")
                 #self.msg_stream.writemsg(H9Subscribe(H9Subscribe.Content.FRAME))
             except StreamClosedError:
                 logging.error("Unable connect to h9bus")
