@@ -9,7 +9,7 @@ from h9web import h9d
 from h9web.cli import CliWSHandler
 from h9web.handler import IndexHandler, LoginHandler, LogoutHandler
 from h9web.event import Event
-from h9web.api import H9webAPI, DevAPI
+from h9web.api import H9webAPI, DevAPI, ExecuteMethodAPI, ExecuteDeviceMethodAPI
 from h9web.settings import get_ssl_context, get_server_settings
 
 
@@ -23,6 +23,8 @@ class Application(tornado.web.Application):
             (r'/events', Event, dict(h9bus_int=h9bus_int, h9d_int=h9d_int)),
             (r'/api/sendframe', H9webAPI, dict(h9bus_int=h9bus_int)),
             (r'/api/dev', DevAPI, dict(h9d_int=h9d_int)),
+            (r'/api/execute/([A-Za-z0-9_]+)', ExecuteMethodAPI, dict(h9d_int=h9d_int)),
+            (r'/api/device/([0-9]+)/execute/([A-Za-z0-9_]+)', ExecuteDeviceMethodAPI, dict(h9d_int=h9d_int)),
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), 'templates'),

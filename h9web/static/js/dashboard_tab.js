@@ -24,8 +24,8 @@ function switch_antenna(ant) {
     });
 }
 
-function procces_dev_event(object, id, method, result) {
-    console.log('procces_dev_event(', object, id, method, result, ')');
+function procces_dev_event(device_id, event_name, register_id, value) {
+    console.log('procces_dev_event(', device_id, event_name, register_id, value, ')');
     var as_button_1 = $('#antenna-switch-btn1');
     var as_button_2 = $('#antenna-switch-btn2');
     var as_button_3 = $('#antenna-switch-btn3');
@@ -44,7 +44,7 @@ function procces_dev_event(object, id, method, result) {
     as_button_7.removeClass('active');
     as_button_8.removeClass('active');
 
-    switch (parseInt(result, 10)) {
+    switch (parseInt(value, 10)) {
         case 1:
             as_button_1.addClass('active'); break;
         case 2:

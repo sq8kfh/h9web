@@ -3,7 +3,7 @@ import tornado.web
 import json
 import traceback
 from h9web.handler import BaseHandler
-from h9.msg import H9SendFrame, H9ExecuteMethod
+from h9.msg import H9SendFrame, H9ExecuteMethod, H9ExecuteDeviceMethod
 
 
 class BaseAPIHandler(BaseHandler):
@@ -72,3 +72,51 @@ class DevAPI(BaseAPIHandler):
             raise tornado.web.HTTPError(400, reason='Invalid frame parameters')
 
         self.h9d.send_msg(msg)
+
+from h9.msgstream import H9msgStream
+
+class ExecuteMethodAPI(BaseAPIHandler):
+    def initialize(self, h9d_int):
+        super().initialize()
+        self.debug = self.settings.get('debug', False)
+        self.h9d = h9d_int
+
+    @tornado.web.authenticated
+    def post(self, method_name):
+        logging.debug("Execute method '" + method_name + "'")
+        msg = H9ExecuteMethod(method_name)
+        msg_stream = H9msgStream("127.0.0.1", 7979)
+        #self.h9d.send_msg(msg)
+        msg_stream.connect("h9web2")
+        msg_stream.writemsg(msg)
+        msg = msg_stream.readmsg()
+        r = json.dumps(msg.to_dict())
+        self.write(r)
+
+
+    @tornado.web.authenticated
+    def get(self, method_name):
+        self.post(method_name)
+
+
+class ExecuteDeviceMethodAPI(BaseAPIHandler):
+    def initialize(self, h9d_int):
+        super().initialize()
+        self.debug = self.settings.get('debug', False)
+        self.h9d = h9d_int
+
+    @tornado.web.authenticated
+    def post(self, device_id, method_name):
+        logging.debug("Execute device (id: " + device_id +") method '" + method_name + "'")
+        msg = H9ExecuteDeviceMethod(device_id, method_name)
+        msg_stream = H9msgStream("127.0.0.1", 7979)
+        # self.h9d.send_msg(msg)
+        msg_stream.connect("h9web2")
+        msg_stream.writemsg(msg)
+        msg = msg_stream.readmsg()
+        r = json.dumps(msg.to_dict())
+        self.write(r)
+
+    @tornado.web.authenticated
+    def get(self, device_id, method_name):
+        self.post(device_id, method_name)

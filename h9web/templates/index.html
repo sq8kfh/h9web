@@ -150,7 +150,8 @@
             var dev_event = tmp_json.value;
             console.log('sse dev_event: ' + e.data);
             //console.log(dev_event);
-            procces_dev_event(dev_event["object"],dev_event.id,dev_event.method,dev_event.response);
+            //{"value": {"register_id": "10", "value_len": "1", "value": "10"}, "device_id": 32, "event": "register_change"}
+            procces_dev_event(tmp_json.device_id,tmp_json.event,dev_event.register_id,dev_event.value);
             //sse dev_event: {"method": "dev", "value": {"object": "antenna-switch", "id": "8", "method": "switch", "response": "1"}}
             //$('#h9d_uptime').text(h9d_stat.uptime);
         });

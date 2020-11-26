@@ -4,7 +4,7 @@ import json
 import tornado.web
 from tornado.iostream import StreamClosedError
 from h9web.api import BaseAPIHandler
-from h9.msg import H9Frame, H9ExecuteMethod, H9MethodResponse
+from h9.msg import H9Frame, H9ExecuteMethod, H9MethodResponse, H9DeviceEvent
 
 
 #TODO: https://github.com/mpetazzoni/sse.js ?
@@ -101,7 +101,7 @@ class Event(BaseAPIHandler):
             self.h9bus.send_frame(msg)
             msg = H9ExecuteMethod('h9d_stat')
             self.h9d.send_msg(msg)
-            await tornado.web.gen.sleep(15)
+            await tornado.web.gen.sleep(60)
 
     def on_finish(self):
         logging.info('Disconnected event subscribers {}:{}'.format(*self.context.address[:2]))
@@ -117,5 +117,5 @@ class Event(BaseAPIHandler):
             await tornado.web.gen.multi([sub.publish_h9bus_stat(message) for sub in cls.subscribers])
         if isinstance(message, H9MethodResponse) and message.method == 'h9d_stat':
             await tornado.web.gen.multi([sub.publish_h9d_stat(message) for sub in cls.subscribers])
-        if isinstance(message, H9MethodResponse) and message.method == 'dev':
+        if isinstance(message, H9DeviceEvent) and message.event == 'register_change':
             await tornado.web.gen.multi([sub.publish_dev_event(message) for sub in cls.subscribers])
