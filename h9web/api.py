@@ -64,8 +64,8 @@ class DevAPI(BaseAPIHandler):
     def post(self):
         try:
             req = json.loads(self.request.body)
-            msg = H9ExecuteMethod('dev')
-            msg.value = {'object': req['object'], 'id': int(req['id']), 'method': req['method'], 'variable_antenna': int(req['variable']['antenna'])}
+            msg = H9ExecuteDeviceMethod(32, 'set_register')
+            msg.value = {'register': 10, 'vale_len': 1, 'value': int(req['variable']['antenna'])}
         except json.JSONDecodeError:
             raise tornado.web.HTTPError(400, reason='Invalid JSON')
         except ValueError:
@@ -85,14 +85,15 @@ class ExecuteMethodAPI(BaseAPIHandler):
     def post(self, method_name):
         logging.debug("Execute method '" + method_name + "'")
         msg = H9ExecuteMethod(method_name)
+        if self.request.body:
+            msg.value = json.loads(self.request.body)
         msg_stream = H9msgStream("127.0.0.1", 7979)
-        #self.h9d.send_msg(msg)
         msg_stream.connect("h9web2")
         msg_stream.writemsg(msg)
         msg = msg_stream.readmsg()
+        logging.debug("Res: ", str(msg))
         r = json.dumps(msg.to_dict())
         self.write(r)
-
 
     @tornado.web.authenticated
     def get(self, method_name):
@@ -107,13 +108,16 @@ class ExecuteDeviceMethodAPI(BaseAPIHandler):
 
     @tornado.web.authenticated
     def post(self, device_id, method_name):
-        logging.debug("Execute device (id: " + device_id +") method '" + method_name + "'")
+        logging.debug("Execute device (id: " + device_id +") method '" + method_name)
         msg = H9ExecuteDeviceMethod(device_id, method_name)
+        if self.request.body:
+            msg.value = json.loads(self.request.body)
         msg_stream = H9msgStream("127.0.0.1", 7979)
         # self.h9d.send_msg(msg)
         msg_stream.connect("h9web2")
         msg_stream.writemsg(msg)
         msg = msg_stream.readmsg()
+
         r = json.dumps(msg.to_dict())
         self.write(r)
 

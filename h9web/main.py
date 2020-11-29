@@ -23,8 +23,8 @@ class Application(tornado.web.Application):
             (r'/events', Event, dict(h9bus_int=h9bus_int, h9d_int=h9d_int)),
             (r'/api/sendframe', H9webAPI, dict(h9bus_int=h9bus_int)),
             (r'/api/dev', DevAPI, dict(h9d_int=h9d_int)),
-            (r'/api/execute/([A-Za-z0-9_]+)', ExecuteMethodAPI, dict(h9d_int=h9d_int)),
-            (r'/api/device/([0-9]+)/execute/([A-Za-z0-9_]+)', ExecuteDeviceMethodAPI, dict(h9d_int=h9d_int)),
+            (r'/api/([A-Za-z0-9_]+)', ExecuteMethodAPI, dict(h9d_int=h9d_int)),
+            (r'/api/device/([0-9]+)/([A-Za-z0-9_]+)', ExecuteDeviceMethodAPI, dict(h9d_int=h9d_int)),
         ]
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), 'templates'),

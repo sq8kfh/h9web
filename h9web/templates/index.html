@@ -20,32 +20,60 @@
             <a class="navbar-brand" href="#">H9</a>
             <ul class="navbar-nav nav">
                 <li class="nav-item">
-                    <a class="nav-link active" href="#dashboard" data-toggle="tab"><i class="fas fa-tachometer-alt"></i>
-                        Dashboard</a>
+                    <a class="nav-link active" href="#dashboard" data-toggle="tab">
+                        <svg class="bi bl" fill="currentColor">
+                            <use xlink:href="static/icons/bootstrap-icons.svg#grid-3x3-gap-fill"/>
+                        </svg> Dashboard</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#rawframe" data-toggle="tab"><i class="fas fa-tools"></i> Raw frame</a>
+                    <a class="nav-link" href="#devices" data-toggle="tab">
+                        <svg class="bi bl" fill="currentColor">
+                            <use xlink:href="static/icons/bootstrap-icons.svg#view-stacked"/>
+                        </svg> Devices</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#stats" data-toggle="tab"><i class="fas fa-chart-bar"></i> Stats</a>
+                    <a class="nav-link" href="#rawframe" data-toggle="tab">
+                        <svg class="bi bl" fill="currentColor">
+                            <use xlink:href="static/icons/bootstrap-icons.svg#tools"/>
+                        </svg> Raw frame</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#settings" data-toggle="tab"><i class="fas fa-cogs"></i> Settings</a>
+                    <a class="nav-link" href="#stats" data-toggle="tab">
+                        <svg class="bi bl" fill="currentColor">
+                            <use xlink:href="static/icons/bootstrap-icons.svg#bar-chart-fill"/>
+                        </svg> Stats</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#settings" data-toggle="tab">
+                        <svg class="bi bl" fill="currentColor">
+                            <use xlink:href="static/icons/bootstrap-icons.svg#gear-fill"/>
+                        </svg> Settings</a>
                 </li>
             </ul>
         </div>
-        <button id="cli-button" type="button" class="btn btn-outline-info"><i class="fas fa-terminal"></i> CLI</button>
-        <a href="/logout" class="btn btn-outline-info ml-1"><i class="fas fa-sign-out-alt"></i></a>
+        <button id="cli-button" type="button" class="btn btn-outline-info">
+            <svg class="bi bl" fill="currentColor">
+                <use xlink:href="static/icons/bootstrap-icons.svg#terminal"/>
+            </svg> CLI
+        </button>
+        <a href="/logout" class="btn btn-outline-info ml-1">
+            <svg class="bi bl" fill="currentColor">
+                <use xlink:href="static/icons/bootstrap-icons.svg#box-arrow-right"/>
+            </svg>
+        </a>
     </nav>
 </header>
 <main class="flex-grow-1 overflow-auto">
     <div class="col d-flex justify-content-center overflow-auto p-0">
-        <div class="tab-content p-2">
+        <div class="tab-content p-2 container-fluid">
             <div class="tab-pane show active" id="dashboard">
                 {% module Template('dashboard_tab.html') %}
             </div>
             <div class="tab-pane" id="rawframe">
                 {% module Template('rawframe_tab.html') %}
+            </div>
+            <div class="tab-pane " id="devices">
+                {% module Template('devices_tab.html') %}
             </div>
             <div class="tab-pane" id="stats">
                 {% module Template('stats_tab.html') %}
@@ -70,8 +98,14 @@
                 Copyright :)
             </div>
             <div class="d-flex justify-content-end align-items-center mr-2">
-                <i id="cli-indicator" class="fas fa-terminal invisible" title="CLI connected"></i>
-                <i id="sse-indicator" class="fas fa-plug invisible" title="SSE connected"></i>
+                <svg id="cli-indicator" class="bi invisible" fill="currentColor">
+                    <title>CLI connected</title>
+                    <use xlink:href="static/icons/bootstrap-icons.svg#terminal"/>
+                </svg>
+                <svg id="sse-indicator" class="bi invisible" fill="currentColor">
+                    <title>SSE connected</title>
+                    <use xlink:href="static/icons/bootstrap-icons.svg#plug-fill"/>
+                </svg>
             </div>
         </div>
     </div>
@@ -83,9 +117,9 @@
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/xterm.js"></script>
 <script src="static/js/xterm-addon-fit.js"></script>
-<script src="https://kit.fontawesome.com/ca82fc5857.js" crossorigin="anonymous"></script>
 <script src="static/js/cli.js"></script>
 <script src="static/js/dashboard_tab.js"></script>
+<script src="static/js/devices_tab.js"></script>
 <script src="static/js/rawframe_tab.js"></script>
 <script>
     var sse;
@@ -107,7 +141,10 @@
         sse.addEventListener("h9frame", function (e) {
             var tmp_json = JSON.parse(e.data);
             console.log('sse h9frame: ' + e.data);
-            $('#frame_list').prepend(Frame(tmp_json))
+            $('#frame_list').prepend(Frame(tmp_json));
+            if ($('#frame_list').children().length > 50) {
+                $('#frame_list').children().last().remove();
+            }
         });
 
         sse.addEventListener("h9bus_stat", function (e) {
