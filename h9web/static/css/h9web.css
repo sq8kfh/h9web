@@ -12,3 +12,11 @@ svg.bl {
     top: -0.125em;
     position: relative;
 }
+
+#devices-list > tr {
+    cursor: pointer;
+}
+
+caption {
+  caption-side: top;
+}

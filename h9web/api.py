@@ -3,7 +3,7 @@ import tornado.web
 import json
 import traceback
 from h9web.handler import BaseHandler
-from h9.msg import H9SendFrame, H9ExecuteMethod, H9ExecuteDeviceMethod
+from h9.msg import H9SendFrame, H9ExecuteMethod, H9ExecuteDeviceMethod, H9DeviceMethodResponse, H9Error
 
 
 class BaseAPIHandler(BaseHandler):
@@ -73,7 +73,7 @@ class DevAPI(BaseAPIHandler):
 
         self.h9d.send_msg(msg)
 
-from h9.msgstream import H9msgStream
+from h9.asyncmsgstream import H9msgStream
 
 class ExecuteMethodAPI(BaseAPIHandler):
     def initialize(self, h9d_int):
@@ -82,15 +82,15 @@ class ExecuteMethodAPI(BaseAPIHandler):
         self.h9d = h9d_int
 
     @tornado.web.authenticated
-    def post(self, method_name):
+    async def post(self, method_name):
         logging.debug("Execute method '" + method_name + "'")
         msg = H9ExecuteMethod(method_name)
         if self.request.body:
             msg.value = json.loads(self.request.body)
         msg_stream = H9msgStream("127.0.0.1", 7979)
-        msg_stream.connect("h9web2")
+        await msg_stream.connect("h9web2")
         msg_stream.writemsg(msg)
-        msg = msg_stream.readmsg()
+        msg = await msg_stream.readmsg()
         logging.debug("Res: ", str(msg))
         r = json.dumps(msg.to_dict())
         self.write(r)
@@ -107,19 +107,27 @@ class ExecuteDeviceMethodAPI(BaseAPIHandler):
         self.h9d = h9d_int
 
     @tornado.web.authenticated
-    def post(self, device_id, method_name):
+    async def post(self, device_id, method_name):
         logging.debug("Execute device (id: " + device_id +") method '" + method_name)
         msg = H9ExecuteDeviceMethod(device_id, method_name)
         if self.request.body:
             msg.value = json.loads(self.request.body)
         msg_stream = H9msgStream("127.0.0.1", 7979)
         # self.h9d.send_msg(msg)
-        msg_stream.connect("h9web2")
+        await msg_stream.connect("h9web2")
         msg_stream.writemsg(msg)
-        msg = msg_stream.readmsg()
+        msg = await msg_stream.readmsg()
 
-        r = json.dumps(msg.to_dict())
-        self.write(r)
+        if isinstance(msg, H9DeviceMethodResponse):
+            r = json.dumps(msg.to_dict())
+            if msg.execute_status == False:
+                self.set_status(400)
+            self.write(r)
+        elif isinstance(msg, H9Error):
+            self.set_status(400)
+            r = json.dumps(msg.to_dict())
+            self.write(r)
+
 
     @tornado.web.authenticated
     def get(self, device_id, method_name):

@@ -1,39 +1,115 @@
 <div class="container-fluid">
-<div class="row col">
-    <div class="col-4 ">
-        <button id="devices-list-refresh-button" type="button" class="btn btn-outline-info">
-            <svg class="bi bl" fill="currentColor">
-                <use xlink:href="static/icons/bootstrap-icons.svg#arrow-repeat"/>
-            </svg> Refresh
-        </button>
-        <ul id="devices-list" class="list-group">
-            <li class="list-group-item">Empty</li>
-        </ul>
+    <div class="row">
+        <div class="col-4 ">
+            <div class="container">
+            <div class="row pb-3">
+                <div class="col-auto pl-0">
+                <button id="devices-list-refresh-button" type="button" class="btn btn-outline-info">
+                    <svg class="bi bl" fill="currentColor">
+                        <use xlink:href="static/icons/bootstrap-icons.svg#arrow-repeat"/>
+                    </svg> Refresh
+                </button>
+                </div>
+                <div class="col-auto pl-0">
+                <button id="devices-discover" type="button" class="btn btn-outline-info" disabled>
+                    <svg class="bi bl" fill="currentColor">
+                        <use xlink:href="static/icons/bootstrap-icons.svg#search"/>
+                    </svg> Discover
+                </button>
+                </div>
+                <div class="col"></div>
+            </div>
+            <div class="row">
+                <table class="table table-hover table-sm">
+                    <caption>Device list</caption>
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="col-2" scope="col">#</th>
+                            <th class="col-2" scope="col">Name</th>
+                        </tr>
+                    </thead>
+                    <tbody id="devices-list">
+                    </tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+        <div class="col-8">
+            <div class="container">
+                <div class="row pb-3">
+                    <div class="col pl-0">
+                        <div class="row">
+                            <div class="col-2">
+                            Node type
+                            </div>
+                            <div class="col-2">
+                                1
+                            </div>
+                            <div class="col"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">
+                            Node version
+                            </div>
+                            <div class="col-2">
+                                0.1
+                            </div>
+                            <div class="col"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">
+                            Last seen
+                            </div>
+                            <div class="col-2">
+                                2020-11-11 12:12
+                            </div>
+                            <div class="col"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row pb-3">
+                    <div class="col-auto pl-0">
+                    <button id="1" type="button" class="btn btn-outline-info" disabled>
+                        <svg class="bi bl" fill="currentColor">
+                            <use xlink:href="static/icons/bootstrap-icons.svg#bootstrap-reboot"/>
+                        </svg> Reset
+                    </button>
+                    </div>
+                    <div class="col-auto pl-0">
+                    <button id="2" type="button" class="btn btn-outline-info" disabled>
+                        <svg class="bi bl" fill="currentColor">
+                            <use xlink:href="static/icons/bootstrap-icons.svg#cpu"/>
+                        </svg> Upload firmware
+                    </button>
+                    </div>
+                    <div class="col"></div>
+                </div>
+                <div class="row">
+                    <table class="table table-striped table-hover table-sm">
+                        <caption>Registers list</caption>
+                        <thead class="thead-light">
+                        <tr>
+                            <th class="col-1" scope="col">#</th>
+                            <th class="col-5" scope="col">Name</th>
+                            <th class="col-1" scope="col">Size [b]</th>
+                            <th class="col-1" scope="col">Type</th>
+                            <th class="col-2" scope="col">Value</th>
+                            <th class="col-2" scope="col">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="register-list">
+                            <!--<tr>
+                                <th scope="row">1</th>
+                                <td>?</td>
+                                <td>16</td>
+                                <td>uint</td>
+                                <td><input type="text"/></td>
+                                <td><button type="button" class="btn btn-outline-info">Read</button><button type="button" class="btn btn-outline-info">Write</button></td>
+                            </tr>-->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-8">
-        Device info
-        <table class="table table-striped">
-            <thead class="thead-light">
-            <tr>
-                <th class="col-1" scope="col">#</th>
-                <th class="col-5" scope="col">Name</th>
-                <th class="col-1" scope="col">Size [bits]</th>
-                <th class="col-1" scope="col">Type</th>
-                <th class="col-2" scope="col">Value</th>
-                <th class="col-2" scope="col">Action</th>
-            </tr>
-            </thead>
-            <tbody id="register-list">
-                <tr>
-                    <th scope="row">1</th>
-                    <td>?</td>
-                    <td>16</td>
-                    <td>uint</td>
-                    <td><input type="text"/></td>
-                    <td><button type="button" class="btn btn-outline-info">Read</button><button type="button" class="btn btn-outline-info">Write</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
 </div>

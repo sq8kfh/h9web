@@ -51,7 +51,7 @@
                 </li>
             </ul>
         </div>
-        <button id="cli-button" type="button" class="btn btn-outline-info">
+        <button id="cli-button" type="button" class="btn btn-outline-info mr-1">
             <svg class="bi bl" fill="currentColor">
                 <use xlink:href="static/icons/bootstrap-icons.svg#terminal"/>
             </svg> CLI
@@ -80,6 +80,17 @@
             </div>
             <div class="tab-pane" id="settings">
                 {% module Template('settings_tab.html') %}
+            </div>
+        </div>
+    </div>
+    <div id="modal" class="modal fade right" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-side modal-bottom-right" role="document">
+            <div class="modal-content">
+                <div id="log" class="modal-body">
+                    <!--<div class="alert alert-warning" role="alert">
+                        Read timeout
+                    </div>-->
+                </div>
             </div>
         </div>
     </div>
