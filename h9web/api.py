@@ -2,11 +2,26 @@ import logging
 import tornado.web
 import json
 import traceback
+from tornado.queues import Queue
 from h9web.handler import BaseHandler
-from h9.msg import H9SendFrame, H9ExecuteMethod, H9ExecuteDeviceMethod, H9DeviceMethodResponse, H9Error
+from h9.msg import H9SendFrame, H9ExecuteMethod, H9MethodResponse, H9ExecuteDeviceMethod, H9DeviceMethodResponse, H9Error
 
 
 class BaseAPIHandler(BaseHandler):
+    h9d_connection_pool = None
+
+    async def get_h9d_connection(self):
+        if BaseAPIHandler.h9d_connection_pool is None:
+            BaseAPIHandler.h9d_connection_pool = Queue()
+            for i in range(5):
+                h9d_stream = H9msgStream(self.settings.get('h9d_address'), self.settings.get('h9d_port'))
+                await h9d_stream.connect("h9web_cp")
+                await BaseAPIHandler.h9d_connection_pool.put(h9d_stream)
+        return await BaseAPIHandler.h9d_connection_pool.get()
+
+    def return_h9d_connection(self, connection):
+        BaseAPIHandler.h9d_connection_pool.put_nowait(connection)
+
     def set_default_headers(self):
         self.set_header('Content-Type', 'application/json')
 
@@ -87,13 +102,35 @@ class ExecuteMethodAPI(BaseAPIHandler):
         msg = H9ExecuteMethod(method_name)
         if self.request.body:
             msg.value = json.loads(self.request.body)
-        msg_stream = H9msgStream("127.0.0.1", 7979)
-        await msg_stream.connect("h9web2")
-        msg_stream.writemsg(msg)
-        msg = await msg_stream.readmsg()
+
+        h9d_connection = await self.get_h9d_connection()
+        h9d_connection.writemsg(msg)
+        msg = await h9d_connection.readmsg()
+        self.return_h9d_connection(h9d_connection)
+
         logging.debug("Res: ", str(msg))
-        r = json.dumps(msg.to_dict())
-        self.write(r)
+        if isinstance(msg, H9MethodResponse):
+            r = json.dumps(msg.to_dict())
+            if msg.error_code != 0:
+                self.set_status(400)
+                r = json.dumps({
+                    'error': {
+                        'code': msg.error_code,
+                        # 'name': msg.name,
+                        'message': msg.error_message,
+                    }
+                })
+            self.write(r)
+        elif isinstance(msg, H9Error):
+            self.set_status(400)
+            r = json.dumps({
+                'error': {
+                    'code': msg.code,
+                    'name': msg.name,
+                    'message': msg.message,
+                }
+            })
+            self.write(r)
 
     @tornado.web.authenticated
     def get(self, method_name):
@@ -112,20 +149,34 @@ class ExecuteDeviceMethodAPI(BaseAPIHandler):
         msg = H9ExecuteDeviceMethod(device_id, method_name)
         if self.request.body:
             msg.value = json.loads(self.request.body)
-        msg_stream = H9msgStream("127.0.0.1", 7979)
-        # self.h9d.send_msg(msg)
-        await msg_stream.connect("h9web2")
-        msg_stream.writemsg(msg)
-        msg = await msg_stream.readmsg()
+
+        h9d_connection = await self.get_h9d_connection()
+        h9d_connection.writemsg(msg)
+        msg = await h9d_connection.readmsg()
+        self.return_h9d_connection(h9d_connection)
 
         if isinstance(msg, H9DeviceMethodResponse):
             r = json.dumps(msg.to_dict())
-            if msg.execute_status == False:
+            if msg.error_code != 0:
                 self.set_status(400)
+                r = json.dumps({
+                    'error': {
+                        'code': msg.error_code,
+                        #'name': msg.name,
+                        'message': msg.error_message,
+                    }
+                })
             self.write(r)
         elif isinstance(msg, H9Error):
+            logging.debug(msg)
             self.set_status(400)
-            r = json.dumps(msg.to_dict())
+            r = json.dumps({
+                'error': {
+                    'code': msg.code,
+                    'name': msg.name,
+                    'message': msg.message,
+                }
+            })
             self.write(r)
 
 

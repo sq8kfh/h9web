@@ -22,17 +22,6 @@ class Event(BaseAPIHandler):
         Event.subscribers.append(self)
         logging.info('Connected event subscribers {}:{}'.format(*self.context.address[:2]))
 
-    async def publish_h9bus_frame(self, msg):
-        try:
-            json_data = json.dumps(msg.to_dict())
-            logging.debug('Event send {!r}'.format(json_data))
-
-            self.write('event: h9frame\n')
-            self.write('data: {}\n\n'.format(json_data))
-            await self.flush()
-        except StreamClosedError:
-            self.run = False
-
     def convert_uptime(self, n):
         n = int(n)
         day = n // (24 * 3600)
@@ -53,12 +42,23 @@ class Event(BaseAPIHandler):
             ret = ret + str(seconds) + ' seconds'
         return ret
 
+    async def publish_h9bus_frame(self, msg):
+        try:
+            json_data = json.dumps(msg.to_dict())
+            logging.debug('Event send {!r}'.format(json_data))
+
+            self.write('event: h9frame\n')
+            self.write('data: {}\n\n'.format(json_data))
+            await self.flush()
+        except StreamClosedError:
+            self.run = False
+
     async def publish_h9bus_stat(self, msg):
         try:
             tmp = msg.to_dict()
             tmp['value']['uptime'] = self.convert_uptime(tmp['value']['uptime'])
             json_data = json.dumps(tmp)
-            logging.debug('Event send {!r}'.format(json_data))
+            #logging.debug('Event send {!r}'.format(json_data))
             self.write('event: h9bus_stat\n')
             self.write('data: {}\n\n'.format(json_data))
             await self.flush()
@@ -70,7 +70,7 @@ class Event(BaseAPIHandler):
             tmp = msg.to_dict()
             tmp['value']['uptime'] = self.convert_uptime(tmp['value']['uptime'])
             json_data = json.dumps(tmp)
-            logging.debug('Event send {!r}'.format(json_data))
+            #logging.debug('Event send {!r}'.format(json_data))
             self.write('event: h9d_stat\n')
             self.write('data: {}\n\n'.format(json_data))
             await self.flush()

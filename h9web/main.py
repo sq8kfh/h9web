@@ -36,7 +36,9 @@ class Application(tornado.web.Application):
             debug=options.debug,
             sslport=options.sslport,
             redirect=options.redirect,
-            cli=options.cli
+            cli=options.cli,
+            h9d_address=options.h9daddress,
+            h9d_port=options.h9dport
         )
         super(Application, self).__init__(handlers, **settings)
 
@@ -44,8 +46,8 @@ def main():
     options.parse_command_line()
     loop = tornado.ioloop.IOLoop.current()
 
-    h9bus_int = h9bus.H9bus()
-    h9d_int = h9d.H9d()
+    h9bus_int = h9bus.H9bus(options.h9busaddress, options.h9busport)
+    h9d_int = h9d.H9d(options.h9daddress, options.h9dport)
 
     app = Application(options, h9bus_int, h9d_int, loop)
 

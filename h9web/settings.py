@@ -25,6 +25,10 @@ define('wpintvl', type=int, default=0, help='Websocket ping interval')
 define('xsrf', type=bool, default=True, help='CSRF protection')
 define('version', type=bool, help='Show version information', callback=print_version)
 define('cli', default='/bin/bash', help='CLI path')
+define('h9busaddress', default='127.0.0.1', help='H9bus address')
+define('h9busport', type=int, default='7878', help='H9bus port')
+define('h9daddress', default='127.0.0.1', help='H9d address')
+define('h9dport', type=int, default='7979', help='H9d port')
 
 
 def get_server_settings(options):

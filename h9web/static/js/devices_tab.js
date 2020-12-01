@@ -10,7 +10,8 @@ function read_register_device(device_id, register_id, input, button) {
             console.log(response);
             input.val(response.value.value);
         }).fail(function (xhr, status, error) {
-            var tmp= $('<div class="alert alert-danger" role="alert">Read register ' + register_id + ' from device ' + device_id + ' - timeout</div>');
+            var err = JSON.parse(xhr.responseText).error;
+            var tmp= $('<div class="alert alert-danger" role="alert">Read register ' + register_id + ' on device ' + device_id + ' error - ' + err.message + '</div>');
             $('#log').prepend(tmp);
             if ($('#log').children().length > 5) {
                 $('#log').children().last().remove();
@@ -31,7 +32,8 @@ function write_register_device(device_id, register_id, input, button) {
             console.log(response);
             input.val(response.value.value);
         }).fail(function (xhr, status, error) {
-            var tmp= $('<div class="alert alert-warning" role="alert">Write register ' + register_id + ' from device ' + device_id + ' - timeout</div>');
+            var err = JSON.parse(xhr.responseText).error;
+            var tmp= $('<div class="alert alert-danger" role="alert">Write register ' + register_id + ' on device ' + device_id + ' error - ' + err.message + '</div>');
             $('#log').prepend(tmp);
             if ($('#log').children().length > 5) {
                 $('#log').children().last().remove();
@@ -82,7 +84,8 @@ function refresh_device(device_id) {
                 tmp_tr.appendTo(register_list);
             }
         }).fail(function (xhr, status, error) {
-            var tmp= $('<div class="alert alert-danger" role="alert">Get registes list - error</div>');
+            var err = JSON.parse(xhr.responseText).error;
+            var tmp= $('<div class="alert alert-danger" role="alert">Get registes list error - ' + err.message + '</div>');
             $('#log').prepend(tmp);
             if ($('#log').children().length > 5) {
                 $('#log').children().last().remove();
@@ -93,6 +96,8 @@ function refresh_device(device_id) {
 
 jQuery(function ($) {
     var refresh_button = $('#devices-list-refresh-button');
+    var discover_button = $('#devices-discover-button');
+
     var devices_list = $('#devices-list');
 
     refresh_button.click(function() {
@@ -124,7 +129,36 @@ jQuery(function ($) {
                 tmp_li.appendTo(devices_list);
             }
         }).fail(function (xhr, status, error) {
-            var tmp= $('<div class="alert alert-danger" role="alert">Get devices list - error</div>');
+            var err = JSON.parse(xhr.responseText).error;
+            var tmp= $('<div class="alert alert-danger" role="alert">Get devices list error - ' + err.message + '</div>');
+            $('#log').prepend(tmp);
+            if ($('#log').children().length > 5) {
+                $('#log').children().last().remove();
+            }
+            $('#modal').modal({'show': true, 'focus': false});
+        });
+    });
+
+    discover_button.click(function() {
+        var token = $('input[name="_xsrf"]').attr('value')
+        jQuery.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('X-XSRFToken', token);
+            }
+        });
+
+        jQuery.ajax({
+            url: '/api/discover',
+            async: true,
+            dataType: 'json',
+            contentType: 'application/json',
+            type: 'POST',
+            //data: data,
+        }).done(function (response) {
+
+        }).fail(function (xhr, status, error) {
+            var err = JSON.parse(xhr.responseText).error;
+            var tmp= $('<div class="alert alert-danger" role="alert">Discover error - ' + err.message + '</div>');
             $('#log').prepend(tmp);
             if ($('#log').children().length > 5) {
                 $('#log').children().last().remove();
