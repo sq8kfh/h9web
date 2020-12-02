@@ -4,8 +4,10 @@ import json
 import traceback
 from tornado.queues import Queue
 from h9web.handler import BaseHandler
+from dateutil import parser
+from dateutil import tz
 from h9.msg import H9SendFrame, H9ExecuteMethod, H9MethodResponse, H9ExecuteDeviceMethod, H9DeviceMethodResponse, H9Error
-
+from asyncio.exceptions import IncompleteReadError
 
 class BaseAPIHandler(BaseHandler):
     h9d_connection_pool = None
@@ -21,6 +23,21 @@ class BaseAPIHandler(BaseHandler):
 
     def return_h9d_connection(self, connection):
         BaseAPIHandler.h9d_connection_pool.put_nowait(connection)
+
+    async def h9d_connection_send_msg_get_response(self, msg):
+        h9d_connection = await self.get_h9d_connection()
+        h9d_connection.writemsg(msg)
+        try:
+            msg = await h9d_connection.readmsg()
+        except IncompleteReadError as e:
+            logging.warning("Restoring h9d connection...")
+            h9d_connection = H9msgStream(self.settings.get('h9d_address'), self.settings.get('h9d_port'))
+            await h9d_connection.connect("h9web_cp")
+            h9d_connection.writemsg(msg)
+            msg = await h9d_connection.readmsg()
+        self.return_h9d_connection(h9d_connection)
+        return msg
+
 
     def set_default_headers(self):
         self.set_header('Content-Type', 'application/json')
@@ -103,12 +120,13 @@ class ExecuteMethodAPI(BaseAPIHandler):
         if self.request.body:
             msg.value = json.loads(self.request.body)
 
-        h9d_connection = await self.get_h9d_connection()
-        h9d_connection.writemsg(msg)
-        msg = await h9d_connection.readmsg()
-        self.return_h9d_connection(h9d_connection)
+        msg = await self.h9d_connection_send_msg_get_response(msg)
 
-        logging.debug("Res: ", str(msg))
+        #h9d_connection = await self.get_h9d_connection()
+        #h9d_connection.writemsg(msg)
+        #msg = await h9d_connection.readmsg()
+        #self.return_h9d_connection(h9d_connection)
+
         if isinstance(msg, H9MethodResponse):
             r = json.dumps(msg.to_dict())
             if msg.error_code != 0:
@@ -133,8 +151,8 @@ class ExecuteMethodAPI(BaseAPIHandler):
             self.write(r)
 
     @tornado.web.authenticated
-    def get(self, method_name):
-        self.post(method_name)
+    async def get(self, method_name):
+        await self.post(method_name)
 
 
 class ExecuteDeviceMethodAPI(BaseAPIHandler):
@@ -150,10 +168,12 @@ class ExecuteDeviceMethodAPI(BaseAPIHandler):
         if self.request.body:
             msg.value = json.loads(self.request.body)
 
-        h9d_connection = await self.get_h9d_connection()
-        h9d_connection.writemsg(msg)
-        msg = await h9d_connection.readmsg()
-        self.return_h9d_connection(h9d_connection)
+        msg = await self.h9d_connection_send_msg_get_response(msg)
+
+        #h9d_connection = await self.get_h9d_connection()
+        #h9d_connection.writemsg(msg)
+        #msg = await h9d_connection.readmsg()
+        #self.return_h9d_connection(h9d_connection)
 
         if isinstance(msg, H9DeviceMethodResponse):
             r = json.dumps(msg.to_dict())
@@ -166,6 +186,15 @@ class ExecuteDeviceMethodAPI(BaseAPIHandler):
                         'message': msg.error_message,
                     }
                 })
+            elif msg.method == 'info':
+                tmp = msg.value
+                created_time_utc = parser.isoparse(tmp['created_time'])
+                last_seen_time_utc = parser.isoparse(tmp['last_seen_time'])
+                to_zone = tz.tzlocal()
+                tmp['created_time'] = created_time_utc.astimezone(to_zone).strftime("%Y-%m-%d %H:%M")
+                tmp['last_seen_time'] = last_seen_time_utc.astimezone(to_zone).strftime("%Y-%m-%d %H:%M")
+                msg.value = tmp
+                r = json.dumps(msg.to_dict())
             self.write(r)
         elif isinstance(msg, H9Error):
             logging.debug(msg)
@@ -181,5 +210,5 @@ class ExecuteDeviceMethodAPI(BaseAPIHandler):
 
 
     @tornado.web.authenticated
-    def get(self, device_id, method_name):
-        self.post(device_id, method_name)
+    async def get(self, device_id, method_name):
+        await self.post(device_id, method_name)

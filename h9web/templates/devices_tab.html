@@ -4,14 +4,14 @@
             <div class="container">
             <div class="row pb-3">
                 <div class="col-auto pl-0">
-                <button id="devices-list-refresh-button" type="button" class="btn btn-outline-info">
+                <button id="devices-list-refresh-btn" type="button" class="btn btn-outline-info">
                     <svg class="bi bl" fill="currentColor">
                         <use xlink:href="static/icons/bootstrap-icons.svg#arrow-repeat"/>
                     </svg> Refresh
                 </button>
                 </div>
                 <div class="col-auto pl-0">
-                <button id="devices-discover-button" type="button" class="btn btn-outline-info">
+                <button id="devices-discover-btn" type="button" class="btn btn-outline-info">
                     <svg class="bi bl" fill="currentColor">
                         <use xlink:href="static/icons/bootstrap-icons.svg#search"/>
                     </svg> Discover
@@ -39,44 +39,45 @@
                 <div class="row pb-3">
                     <div class="col pl-0">
                         <div class="row">
-                            <div class="col-2">
-                            Node type
-                            </div>
-                            <div class="col-2">
-                                1
-                            </div>
-                            <div class="col"></div>
+                            <div class="col-2">Device id:</div>
+                            <div class="col" id="dt-id"></div>
                         </div>
                         <div class="row">
-                            <div class="col-2">
-                            Node version
-                            </div>
-                            <div class="col-2">
-                                0.1
-                            </div>
-                            <div class="col"></div>
+                            <div class="col-2">Device type:</div>
+                            <div class="col" id="dt-type"></div>
                         </div>
                         <div class="row">
-                            <div class="col-2">
-                            Last seen
-                            </div>
-                            <div class="col-2">
-                                2020-11-11 12:12
-                            </div>
-                            <div class="col"></div>
+                            <div class="col-2">Device name:</div>
+                            <div class="col" id="dt-name"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">Device version:</div>
+                            <div class="col" id="dt-version"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">Created:</div>
+                            <div class="col" id="dt-created"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">Last seen:</div>
+                            <div class="col" id="dt-last-seen"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">Description:</div>
+                            <div class="col" id="dt-description"></div>
                         </div>
                     </div>
                 </div>
                 <div class="row pb-3">
                     <div class="col-auto pl-0">
-                    <button id="1" type="button" class="btn btn-outline-info" disabled>
+                    <button id="dt-reset-btn" type="button" class="btn btn-outline-info" disabled>
                         <svg class="bi bl" fill="currentColor">
                             <use xlink:href="static/icons/bootstrap-icons.svg#bootstrap-reboot"/>
                         </svg> Reset
                     </button>
                     </div>
                     <div class="col-auto pl-0">
-                    <button id="2" type="button" class="btn btn-outline-info" disabled>
+                    <button id="dt-firmware-upload-btn" type="button" class="btn btn-outline-info" disabled>
                         <svg class="bi bl" fill="currentColor">
                             <use xlink:href="static/icons/bootstrap-icons.svg#cpu"/>
                         </svg> Upload firmware

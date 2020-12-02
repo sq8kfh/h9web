@@ -21,6 +21,7 @@ setup(
     python_requires='>=3.5',
     install_requires=[
         'tornado>=6.0.4',
+        'python-dateutil>=2.8.1',
         'h9'
     ],
 )
