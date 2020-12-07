@@ -2,12 +2,14 @@ import logging
 import tornado.web
 import json
 import traceback
-from tornado.queues import Queue
-from h9web.handler import BaseHandler
 from dateutil import parser
 from dateutil import tz
+from asyncio import IncompleteReadError
+from tornado.queues import Queue
+from h9web.handler import BaseHandler
 from h9.msg import H9SendFrame, H9ExecuteMethod, H9MethodResponse, H9ExecuteDeviceMethod, H9DeviceMethodResponse, H9Error
-from asyncio.exceptions import IncompleteReadError
+from h9.asyncmsgstream import H9msgStream
+
 
 class BaseAPIHandler(BaseHandler):
     h9d_connection_pool = None
@@ -86,26 +88,6 @@ class H9webAPI(BaseAPIHandler):
         logging.debug('Send frame: ' + str(frame))
         self.h9bus.send_frame(frame)
 
-class DevAPI(BaseAPIHandler):
-    def initialize(self, h9d_int):
-        super(DevAPI, self).initialize()
-        self.debug = self.settings.get('debug', False)
-        self.h9d = h9d_int
-
-    @tornado.web.authenticated
-    def post(self):
-        try:
-            req = json.loads(self.request.body)
-            msg = H9ExecuteDeviceMethod(32, 'set_register')
-            msg.value = {'register': 10, 'vale_len': 1, 'value': int(req['variable']['antenna'])}
-        except json.JSONDecodeError:
-            raise tornado.web.HTTPError(400, reason='Invalid JSON')
-        except ValueError:
-            raise tornado.web.HTTPError(400, reason='Invalid frame parameters')
-
-        self.h9d.send_msg(msg)
-
-from h9.asyncmsgstream import H9msgStream
 
 class ExecuteMethodAPI(BaseAPIHandler):
     def initialize(self, h9d_int):

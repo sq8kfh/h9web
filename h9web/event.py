@@ -77,12 +77,13 @@ class Event(BaseAPIHandler):
         except StreamClosedError:
             self.run = False
 
-    async def publish_dev_event(self, msg):
+    async def publish_device_event(self, msg):
         try:
             tmp = msg.to_dict()
-            json_data = json.dumps(tmp)
+            event_msg = dict(device_id=tmp['device_id'], event_name=tmp['event_name'], event_data=tmp['value'])
+            json_data = json.dumps(event_msg)
             logging.debug('Event send {!r}'.format(json_data))
-            self.write('event: dev_event\n')
+            self.write('event: device_event\n')
             self.write('data: {}\n\n'.format(json_data))
             await self.flush()
         except StreamClosedError:
@@ -117,5 +118,5 @@ class Event(BaseAPIHandler):
             await tornado.web.gen.multi([sub.publish_h9bus_stat(message) for sub in cls.subscribers])
         if isinstance(message, H9MethodResponse) and message.method == 'h9d_stat':
             await tornado.web.gen.multi([sub.publish_h9d_stat(message) for sub in cls.subscribers])
-        if isinstance(message, H9DeviceEvent) and message.event == 'register_change':
-            await tornado.web.gen.multi([sub.publish_dev_event(message) for sub in cls.subscribers])
+        if isinstance(message, H9DeviceEvent):
+            await tornado.web.gen.multi([sub.publish_device_event(message) for sub in cls.subscribers])

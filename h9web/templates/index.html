@@ -128,91 +128,11 @@
 <script src="static/js/bootstrap.min.js"></script>
 <script src="static/js/xterm.js"></script>
 <script src="static/js/xterm-addon-fit.js"></script>
+<script src="static/js/eventsmgr.js"></script>
 <script src="static/js/cli.js"></script>
 <script src="static/js/dashboard_tab.js"></script>
 <script src="static/js/devices_tab.js"></script>
 <script src="static/js/rawframe_tab.js"></script>
-<script>
-    var sse;
-
-    function setupSSE(reconnect_time) {
-        var sse_url = window.location.href.split(/\?|#/, 1)[0] + 'events';
-        sse = new EventSource(sse_url);
-
-        const Frame = ({priority, type, seqnum, source, destination, dlc, data, origin}) =>
-            `<div class="alert alert-info">
-                <strong>${source}</strong> (<strong>${origin}</strong>) -> <strong>${destination}</strong> priority: <strong>${priority}</strong> type: <strong>${type}</strong> seqnum:  <strong>${seqnum}</strong> dlc: <strong>${dlc}</strong> data: <strong>${data.join(' ')}</strong>
-             </div>`
-
-        sse.addEventListener("connection", function (e) {
-            console.log("sse connection: " + e.data);
-            $('#sse-indicator').removeClass('invisible');
-        });
-
-        sse.addEventListener("h9frame", function (e) {
-            var tmp_json = JSON.parse(e.data);
-            console.log('sse h9frame: ' + e.data);
-            $('#frame_list').prepend(Frame(tmp_json));
-            if ($('#frame_list').children().length > 50) {
-                $('#frame_list').children().last().remove();
-            }
-        });
-
-        sse.addEventListener("h9bus_stat", function (e) {
-            var tmp_json = JSON.parse(e.data);
-            var h9bus_stat = tmp_json.value;
-            console.log('sse h9bus_stat: ' + e.data);
-            $('#h9bus_version').text(h9bus_stat.version);
-            $('#h9bus_uptime').text(h9bus_stat.uptime);
-            $('#h9bus_coneccted_clients').text(h9bus_stat.connected_clients_count);
-
-            const Endpoint = ({name, send_frames_counter, received_frames_counter}) =>
-                `<h6 id="h9bus_endpoint_name" class="card-subtitle mb-1 mt-3">${name}:</h6>
-                <div class="row">
-                    <div class="col-sm-5">Frames sent:</div>
-                    <div class="col" id="h9bus_endpoint_sent">${send_frames_counter}</div>
-                </div>
-                <div class="row">
-                    <div class="col-sm-5">Frames received:</div>
-                    <div class="col" id="h9bus_endpoint_recv">${received_frames_counter}</div>
-                </div>`
-
-            endpoint_list = h9bus_stat.endpoint.map(function (endpoint) {
-                return Endpoint(endpoint);
-            }).join('');
-            $('#h9bus_endpoint').html(endpoint_list);
-        });
-
-        sse.addEventListener("h9d_stat", function (e) {
-            var tmp_json = JSON.parse(e.data);
-            var h9d_stat = tmp_json.value;
-            console.log('sse h9bus_stat: ' + e.data);
-            $('#h9d_version').text(h9d_stat.version);
-            $('#h9d_uptime').text(h9d_stat.uptime);
-            $('#h9d_coneccted_clients').text(h9d_stat.connected_clients_count);
-            $('#h9d_active_devices').text(h9d_stat.active_devices_count);
-        });
-
-        sse.addEventListener("dev_event", function (e) {
-            var tmp_json = JSON.parse(e.data);
-            var dev_event = tmp_json.value;
-            console.log('sse dev_event: ' + e.data);
-            //console.log(dev_event);
-            //{"value": {"register_id": "10", "value_len": "1", "value": "10"}, "device_id": 32, "event": "register_change"}
-            procces_dev_event(tmp_json.device_id,tmp_json.event,dev_event.register_id,dev_event.value);
-            //sse dev_event: {"method": "dev", "value": {"object": "antenna-switch", "id": "8", "method": "switch", "response": "1"}}
-            //$('#h9d_uptime').text(h9d_stat.uptime);
-        });
-
-        sse.onerror = function () {
-            console.log("sse error");
-            $('#sse-indicator').addClass('invisible');
-            sse.close();
-            window.setTimeout(setupSSE, reconnect_time, reconnect_time * 2 > 15000 ? 15000 : reconnect_time * 2);
-        };
-    }
-
-    setupSSE(1000);
-</script>
+<script src="static/js/stats_tab.js"></script>
 </body>
 </html>

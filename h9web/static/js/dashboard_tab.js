@@ -1,8 +1,8 @@
-var jQuery;
+const antenna_switch_id = 32;
+const selected_antenna_register = 10;
+
 
 function switch_antenna(ant) {
-    var data = {'object': 'antenna-switch', 'id': 8, 'method': 'switch', 'variable': {'antenna': ant}};
-
     var token = $('input[name="_xsrf"]').attr('value')
     $.ajaxSetup({
         beforeSend: function (xhr) {
@@ -11,21 +11,26 @@ function switch_antenna(ant) {
     });
 
     jQuery.ajax({
-        url: '/api/dev',
-        async: true,
-        dataType: 'json',
-        contentType: 'application/json',
-        type: 'POST',
-        data: JSON.stringify(data),
-    }).done(function () {
-        // Handle Success
-    }).fail(function (xhr, status, error) {
-        // Handle Failure
-    });
+            url: '/api/device/' + antenna_switch_id +'/set_register',
+            async: true,
+            dataType: 'json',
+            contentType: 'application/json',
+            type: 'POST',
+            data: JSON.stringify({'register': selected_antenna_register, 'value': ant}),
+        }).done(function (response) {
+            console.log(response);
+        }).fail(function (xhr, status, error) {
+            var err = JSON.parse(xhr.responseText).error;
+            error_message('Write register ' + selected_antenna_register + ' on device ' + antenna_switch_id + ' error - ' + err.message);
+        });
 }
 
-function procces_dev_event(device_id, event_name, register_id, value) {
-    console.log('procces_dev_event(', device_id, event_name, register_id, value, ')');
+
+function procces_device_event(device_id, event_name, event_data) {
+    console.log('Procces device (' +  device_id + ') \'' +  event_name + '\' event:', event_data);
+
+    if (device_id != antenna_switch_id || event_name != 'register_change' || event_data.register_id != selected_antenna_register) return;
+
     var as_button_1 = $('#antenna-switch-btn1');
     var as_button_2 = $('#antenna-switch-btn2');
     var as_button_3 = $('#antenna-switch-btn3');
@@ -44,7 +49,7 @@ function procces_dev_event(device_id, event_name, register_id, value) {
     as_button_7.removeClass('active');
     as_button_8.removeClass('active');
 
-    switch (parseInt(value, 10)) {
+    switch (parseInt(event_data.value, 10)) {
         case 1:
             as_button_1.addClass('active'); break;
         case 2:
@@ -64,7 +69,16 @@ function procces_dev_event(device_id, event_name, register_id, value) {
     }
 }
 
+
 jQuery(function ($) {
+    addSSEventListener("device_event", function (e) {
+        var device_event = JSON.parse(e.data);
+        console.log('sse device_event: ' + e.data);
+        procces_device_event(device_event.device_id, device_event.event_name, device_event.event_data);
+    });
+
+    $('#antenna_switch_tile_device_id').text('#' + antenna_switch_id);
+
     var as_button_1 = $('#antenna-switch-btn1');
     var as_button_2 = $('#antenna-switch-btn2');
     var as_button_3 = $('#antenna-switch-btn3');

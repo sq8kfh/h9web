@@ -1,7 +1,7 @@
 import logging
 from tornado import gen
 from tornado.iostream import StreamClosedError
-from asyncio.exceptions import IncompleteReadError
+from asyncio import IncompleteReadError
 
 from .event import Event
 
