@@ -18,6 +18,7 @@ function read_register_device(device_id, register_id, input, button) {
         }).done(function (response) {
             console.log(response);
             input.val(response.value.value);
+            input.change();
         }).fail(function (xhr, status, error) {
             var err = JSON.parse(xhr.responseText).error;
             error_message('Read register ' + register_id + ' on device ' + device_id + ' error - ' + err.message);
@@ -35,6 +36,7 @@ function write_register_device(device_id, register_id, input, button) {
         }).done(function (response) {
             console.log(response);
             input.val(response.value.value);
+            input.change();
         }).fail(function (xhr, status, error) {
             var err = JSON.parse(xhr.responseText).error;
             error_message('Write register ' + register_id + ' on device ' + device_id + ' error - ' + err.message);
@@ -99,7 +101,54 @@ function refresh_device(device_id) {
                 var readable = register.readable === "1" ? "" : " disabled";
                 var writable = register.writable === "1" ? "" : " disabled";
 
-                var tmp_tr= $('<tr><th class="align-middle" scope="row">' + register.register + '</th><td class="align-middle">' + register.name + '<td class="align-middle">' + register.size + '</td><td class="align-middle">' + register.type + '</td><td><input type="text" class="form-control form-control-sm" name="value"/></td></td><td><button type="button" name="read" class="btn btn-outline-info btn-sm"' + readable + '>Read</button><button type="button" name="write" class="btn btn-outline-info btn-sm"' + writable +'>Write</button></td></tr>');
+                var tmp_tr = $('<tr><th class="align-middle" scope="row">' + register.register + '</th><td class="align-middle">' + register.name + '<td class="align-middle">' + register.size + '</td><td class="align-middle">' + register.type + '</td><td><input type="text" class="form-control form-control-sm" name="value"/></td></td><td><button type="button" name="read" class="btn btn-outline-info btn-sm"' + readable + '>Read</button><button type="button" name="write" class="btn btn-outline-info btn-sm"' + writable +'>Write</button></td></tr>');
+                var tmp_second_tr = null;
+
+                if (register.bits_names) {
+                    tmp_tr.find("th").attr("rowspan", 2);
+                    tmp_second_tr = $('<tr><td colspan="5"></td></tr>');
+                    tmp_second_tr.attr("device-id", device_id);
+                    tmp_second_tr.attr("bit-register-id", register.register);
+
+                    var i = 0;
+                    for (bit_name of register.bits_names) {
+                        var button = $('<button type="button" bit="' + i + '" class="btn btn-outline-info btn-sm">' + bit_name + '</button>');
+
+                        button.click(function () {
+                            //var device_id = $(this).parent().parent().attr("device-id");
+                            var register_id = $(this).parent().parent().attr("bit-register-id");
+                            var bit_number = parseInt($(this).attr("bit"), 10);
+                            var input = $('#register-list').find("tr[register-id=" + register_id + "]").find("input[name=value]");
+
+                            var value = parseInt(input.val());
+                            value = value ^ (1 << bit_number);
+                            input.val(value);
+                            input.change();
+                        });
+
+                        button.appendTo(tmp_second_tr.find("td"));
+                        ++i;
+                    }
+
+                    tmp_tr.find("input[name=value]").change(function () {
+                        //var device_id = $(this).parent().parent().attr("device-id");
+                        var register_id = $(this).parent().parent().attr("register-id");
+                        var value = parseInt($(this).val(), 10);
+                        var tr = $('#register-list').find("tr[bit-register-id=" + register_id + "]");
+
+                        for (var i = 0; i < 16; ++i) {
+                            var button = tr.find('button[bit=' + i + ']');
+                            if (button) {
+                                if (value & (1 << i)) {
+                                    button.addClass('active');
+                                } else {
+                                    button.removeClass('active');
+                                }
+                            }
+                        }
+                    });
+                }
+
                 tmp_tr.attr("device-id", device_id);
                 tmp_tr.attr("register-id", register.register);
 
@@ -122,6 +171,9 @@ function refresh_device(device_id) {
                 });
 
                 tmp_tr.appendTo(device_tab_register_list);
+                if (register.bits_names) {
+                    tmp_second_tr.appendTo(device_tab_register_list);
+                }
             }
         }).fail(function (xhr, status, error) {
             var err = JSON.parse(xhr.responseText).error;
