@@ -106,7 +106,7 @@ function refresh_device(device_id) {
 
                 if (register.bits_names) {
                     tmp_tr.find("th").attr("rowspan", 2);
-                    tmp_second_tr = $('<tr><td colspan="5"></td></tr>');
+                    tmp_second_tr = $('<tr><td colspan="5"><div class="btn-group"></div></td></tr>');
                     tmp_second_tr.attr("device-id", device_id);
                     tmp_second_tr.attr("bit-register-id", register.register);
 
@@ -116,7 +116,7 @@ function refresh_device(device_id) {
 
                         button.click(function () {
                             //var device_id = $(this).parent().parent().attr("device-id");
-                            var register_id = $(this).parent().parent().attr("bit-register-id");
+                            var register_id = $(this).parent().parent().parent().attr("bit-register-id");
                             var bit_number = parseInt($(this).attr("bit"), 10);
                             var input = $('#register-list').find("tr[register-id=" + register_id + "]").find("input[name=value]");
 
@@ -126,7 +126,7 @@ function refresh_device(device_id) {
                             input.change();
                         });
 
-                        button.appendTo(tmp_second_tr.find("td"));
+                        button.appendTo(tmp_second_tr.find("div"));
                         ++i;
                     }
 
