@@ -9,28 +9,29 @@ class CommonHandler:
 
 class BaseHandler(tornado.web.RequestHandler, CommonHandler):
     def get_current_user(self):
-        return self.get_secure_cookie("authenticated")
+        return "kfh" #self.get_secure_cookie("authenticated")
 
     def prepare(self):
-        if "Origin" in self.request.headers:
-            origin = self.request.headers.get("Origin")
-
-            parsed_origin = urlparse(origin)
-
-            netloc = parsed_origin.netloc.lower()
-            #scheme = parsed_origin.scheme.lower()
-            #logging.debug('netloc: {}'.format(netloc))
-
-            host = self.request.headers.get('Host')
-            #logging.debug('host: {}'.format(host))
-
-            if netloc != host:# or self.request.connection.context._orig_protocol != scheme:
-                raise tornado.web.HTTPError(403, 'Cross origin operation is not allowed.')
-
-        if self.request.connection.context._orig_protocol == 'http' and self.settings['redirect']:
-            port = '' if self.settings['sslport'] == 443 else ':%s' % self.settings['sslport']
-            to_url = 'https://{}{}{}'.format(self.request.host_name, port, self.request.uri)
-            self.redirect(to_url, permanent=True)
+        pass
+#         if "Origin" in self.request.headers:
+#             origin = self.request.headers.get("Origin")
+#
+#             parsed_origin = urlparse(origin)
+#
+#             netloc = parsed_origin.netloc.lower()
+#             #scheme = parsed_origin.scheme.lower()
+#             #logging.debug('netloc: {}'.format(netloc))
+#
+#             host = self.request.headers.get('Host')
+#             #logging.debug('host: {}'.format(host))
+#
+#             #if netloc != host:# or self.request.connection.context._orig_protocol != scheme:
+#             #    raise tornado.web.HTTPError(403, 'Cross origin operation is not allowed.')
+#
+#         if self.request.connection.context._orig_protocol == 'http' and self.settings['redirect']:
+#             port = '' if self.settings['sslport'] == 443 else ':%s' % self.settings['sslport']
+#             to_url = 'https://{}{}{}'.format(self.request.host_name, port, self.request.uri)
+#             self.redirect(to_url, permanent=True)
 
 
 class LoginHandler(BaseHandler):
@@ -55,7 +56,7 @@ class IndexHandler(BaseHandler):
     def initialize(self):
         self.debug = self.settings.get('debug', False)
 
-    @tornado.web.authenticated
+    #@tornado.web.authenticated
     def get(self):
         self.render('index.html', debug=self.debug)
 

@@ -20,7 +20,7 @@ class Application(tornado.web.Application):
             (r'/login', LoginHandler),
             (r'/logout', LogoutHandler),
             (r'/cli', CliWSHandler, dict(loop=loop)),
-            (r'/events', Event, dict(h9bus_int=h9bus_int, h9d_int=h9d_int)),
+            #(r'/events', Event, dict(h9bus_int=h9bus_int, h9d_int=h9d_int)),
             (r'/api/sendframe', H9webAPI, dict(h9bus_int=h9bus_int)),
             (r'/api/([A-Za-z0-9_]+)', ExecuteMethodAPI, dict(h9d_int=h9d_int)),
             (r'/api/device/([0-9]+)/([A-Za-z0-9_]+)', ExecuteDeviceMethodAPI, dict(h9d_int=h9d_int)),
@@ -31,7 +31,7 @@ class Application(tornado.web.Application):
             login_url='/login',
             cookie_secret='__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__',
             websocket_ping_interval=options.wpintvl,
-            xsrf_cookies=options.xsrf,
+            xsrf_cookies=False,
             debug=options.debug,
             sslport=options.sslport,
             redirect=options.redirect,
@@ -60,8 +60,8 @@ def main():
         app.listen(options.sslport, options.ssladdress, **server_settings)
         logging.info('Listening on {}:{} (https)'.format(options.sslport, options.ssladdress))
 
-    loop.spawn_callback(h9bus_int.run)
-    loop.spawn_callback(h9d_int.run)
+    #loop.spawn_callback(h9bus_int.run)
+    #loop.spawn_callback(h9d_int.run)
     loop.start()
 
 

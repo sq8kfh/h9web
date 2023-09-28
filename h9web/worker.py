@@ -2,13 +2,17 @@ import logging
 import tornado.websocket
 import os
 import signal
+import json
+import base64
+from io import TextIOWrapper
+import codecs
 
 from tornado.ioloop import IOLoop
 from tornado.iostream import _ERRNO_CONNRESET
 from tornado.util import errno_from_exception
 
 
-BUF_SIZE = 32 * 1024
+BUF_SIZE = 24
 clients = {}  # {ip: {id: worker}}
 
 
@@ -41,6 +45,8 @@ class Worker(object):
         self.closed = False
         self.id = str(id(self))
         self.data_to_dst = []
+        decoder_factory = codecs.getincrementaldecoder('utf8')
+        self.decoder_instance = decoder_factory()
 
     def __call__(self, fd, events):
         if events & IOLoop.READ:
@@ -64,18 +70,27 @@ class Worker(object):
     def on_read(self):
         logging.debug('worker {} on read'.format(self.id))
         try:
-            data = os.read(self.fd, BUF_SIZE)
+            chunk = os.read(self.fd, BUF_SIZE)
+#             data = self.testwrapper.read()#errors='replace')
         except (OSError, IOError) as e:
             logging.error(e)
             self.close(reason='chan error on reading')
         else:
-            if not data:
+            if not chunk:
                 self.close(reason='chan closed')
                 return
+#             logging.warning(data)
+            #data = base64.b64encode(data.encode('utf-8')).decode('ascii')
+            #js = json.dumps({"data": data.decode('utf-8')})
 
-            logging.debug('{!r} to {}:{}'.format(data, *self.handler.src_addr))
+            data = self.decoder_instance.decode(chunk)
+            js = json.dumps({"data": data})
+
+            #logging.debug('{} to {}:{}'.format(js, *self.handler.src_addr))
+            #logging.debug('{}'.format(js))
+            #logging.debug('{}'.format(data.decode('utf-8')))
             try:
-                self.handler.write_message(data, binary=True)
+                self.handler.write_message(js, binary=False)
             except tornado.websocket.WebSocketClosedError:
                 self.close(reason='websocket closed')
 
@@ -89,6 +104,7 @@ class Worker(object):
 
         try:
             sent = os.write(self.fd, data.encode('UTF-8'))
+            #sent =self.testwrapper.write(data)
         except (OSError, IOError) as e:
             logging.error(e)
             if errno_from_exception(e) in _ERRNO_CONNRESET:

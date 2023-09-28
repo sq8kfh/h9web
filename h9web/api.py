@@ -75,7 +75,7 @@ class H9webAPI(BaseAPIHandler):
         self.debug = self.settings.get('debug', False)
         self.h9bus = h9bus_int
 
-    @tornado.web.authenticated
+    #@tornado.web.authenticated
     def post(self):
         try:
             msg = json.loads(self.request.body)
@@ -95,7 +95,7 @@ class ExecuteMethodAPI(BaseAPIHandler):
         self.debug = self.settings.get('debug', False)
         self.h9d = h9d_int
 
-    @tornado.web.authenticated
+    #@tornado.web.authenticated
     async def post(self, method_name):
         logging.debug("Execute method '" + method_name + "'")
         msg = H9ExecuteMethod(method_name)
@@ -132,7 +132,7 @@ class ExecuteMethodAPI(BaseAPIHandler):
             })
             self.write(r)
 
-    @tornado.web.authenticated
+    #@tornado.web.authenticated
     async def get(self, method_name):
         await self.post(method_name)
 
@@ -143,7 +143,7 @@ class ExecuteDeviceMethodAPI(BaseAPIHandler):
         self.debug = self.settings.get('debug', False)
         self.h9d = h9d_int
 
-    @tornado.web.authenticated
+   # @tornado.web.authenticated
     async def post(self, device_id, method_name):
         logging.debug("Execute device (id: " + device_id +") method '" + method_name)
         msg = H9ExecuteDeviceMethod(device_id, method_name)
@@ -191,6 +191,6 @@ class ExecuteDeviceMethodAPI(BaseAPIHandler):
             self.write(r)
 
 
-    @tornado.web.authenticated
+    #@tornado.web.authenticated
     async def get(self, device_id, method_name):
         await self.post(device_id, method_name)
