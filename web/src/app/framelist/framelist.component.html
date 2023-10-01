@@ -1,0 +1,55 @@
+<ul class="list-group">
+  <li *ngFor="let _frame of frames; let even = even; let odd = odd"
+      [ngClass]="{ 'list-group-item-light': even, 'list-group-item-secondary': odd }" class="list-group-item">
+    <div class="row">
+
+      <div class="col-md-1 pe-0">
+        <strong (click)="onSelectFrameSrcId(_frame)" class="cursor-pointer">{{ _frame.source_id }}</strong>
+        <!--(<strong>${origin}</strong>)--> -> <strong (click)="onSelectFrameDstId(_frame)"
+                                                       class="cursor-pointer">{{ _frame.destination_id }}</strong>
+      </div>
+      <div class="col-md-1 px-0">
+        priority:
+        <strong (click)="onSelectFramePriority(_frame)" class="cursor-pointer">{{ pririty_name(_frame.priority) }}</strong>
+      </div>
+      <div class="col-md-1 px-0"> type:
+        <strong
+          (click)="onSelectFrameType(_frame)" class="cursor-pointer">{{ _frame.type }}</strong></div>
+      <div class="col-md-1 px-0">seqnum: <strong
+        (click)="onSelectFrameSeqnum(_frame)" class="cursor-pointer">{{ _frame.seqnum }}</strong></div>
+      <div class="col-md-1 px-0">dlc:
+        <strong>{{ _frame.dlc }}</strong></div>
+      <div class="col-md-auto px-0">data: <strong (click)="onSelectFrameData(_frame)"
+                                          class="cursor-pointer"> {{ _frame.data.join(" ") }}</strong>
+      </div>
+      <div class="btn-group col-md-auto ms-auto" role="group">
+        <button class="btn btn-primary badge" (click)="on_copy(_frame)">Copy</button>
+        <button class="btn btn-primary badge" (click)="onSelect(_frame)">Details</button>
+      </div>
+    </div>
+    <div *ngIf="_frame == selected_frame" class="row"><p>
+      <div class="card card-body" [ngClass]="{ 'bg-info-subtle': even, 'bg-success-subtle': odd }">
+      <dl class="row">
+        <dt class="col-sm-2 pe-0">Priority:</dt>
+        <dd class="col-sm-9 ps-0 mb-0">{{ _frame.priority }} - {{ pririty_name(_frame.priority) }}</dd>
+
+        <dt class="col-sm-2 pe-0">Type:</dt>
+        <dd class="col-sm-9 ps-0 mb-0">{{ _frame.type }} - {{ type_name(_frame.type) }}</dd>
+
+        <dt class="col-sm-2 pe-0">Seqnum:</dt>
+        <dd class="col-sm-9 ps-0 mb-0">{{ _frame.seqnum }}</dd>
+
+        <dt class="col-sm-2 pe-0">Destination id:</dt>
+        <dd class="col-sm-9 ps-0 mb-0">{{ _frame.destination_id }}</dd>
+
+        <dt class="col-sm-2 pe-0">Source id:</dt>
+        <dd class="col-sm-9 ps-0 mb-0">{{ _frame.source_id }}</dd>
+
+        <dt class="col-sm-2 pe-0">Dlc:</dt>
+        <dd class="col-sm-9 ps-0 mb-0">{{ _frame.dlc }}</dd>
+      </dl>
+      </div>
+    </div>
+  </li>
+</ul>
+
