@@ -13,7 +13,7 @@ const routes: Routes = [
   {path: 'devices', component: DevicesComponent},
   {path: 'rawframe', component: RawframeComponent},
   {path: 'stats', component: StatsComponent},
-  {path: 'settings', component: CliComponent}
+  {path: 'settings', component: SettingsComponent}
 ];
 
 @NgModule({

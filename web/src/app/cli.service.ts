@@ -13,12 +13,17 @@ export interface Message {
   providedIn: 'root'
 })
 export class CliService {
+  visible: boolean = false;
   public socket$!: WebSocketSubject<any>;
 
   private _is_connected: boolean = false;
   public cli_state: string | undefined;
 
   constructor() {
+  }
+
+  show_hide_utility(){
+    this.visible = this.visible ? false:true;
   }
 
   connect() {

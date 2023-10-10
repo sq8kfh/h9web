@@ -57,7 +57,6 @@ class Event(BaseAPIHandler):
             logging.error('Event on_frame {!r}'.format(frame))
             self.write('event: on_frame\n')
             self.write('id: 1\n')
-            frame["priority"] = 0 if frame["priority"] == "H" else 1
             self.write('data: {}\n\n'.format(json.dumps(frame)))
             await self.flush()
         except StreamClosedError:
@@ -111,8 +110,10 @@ class Event(BaseAPIHandler):
     @classmethod
     async def publish_to_all(cls, notification):
         if notification.method == "on_frame":
-            logging.error('Event on_frame {!r}'.format(notification.params["frame"]))
-            await tornado.web.gen.multi([sub.publish_on_frame(notification.params["frame"]) for sub in cls.subscribers])
+            frame = notification.params["frame"]
+            logging.error('Event on_frame {!r}'.format(frame))
+            frame["priority"] = 0 if frame["priority"] == "H" else 1
+            await tornado.web.gen.multi([sub.publish_on_frame(frame) for sub in cls.subscribers])
         # if isinstance(message, H9Frame):
         #     await tornado.web.gen.multi([sub.publish_h9bus_frame(message) for sub in cls.subscribers])
         # if isinstance(message, H9MethodResponse) and message.method == 'h9bus_stat':

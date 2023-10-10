@@ -37,7 +37,7 @@ $utilities: map-merge(
     (
       "cursor": (
         property: cursor,
-        values: auto default pointer wait text move help not-allowed
+        values: auto default pointer wait text move help not-allowed row-resize
       ),
     )
 );
