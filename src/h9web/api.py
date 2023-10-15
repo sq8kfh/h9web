@@ -10,9 +10,16 @@ from h9web.handler import BaseHandler
 # from h9.msg import H9SendFrame, H9ExecuteMethod, H9MethodResponse, H9ExecuteDeviceMethod, H9DeviceMethodResponse, H9Error
 from h9.asyncmsgstream import H9msgStream
 import jsonrpc
+#from h9web.h9d import H9dException
+
 
 class BaseAPIHandler(BaseHandler):
     h9d_connection_pool = None
+
+    def initialize(self, h9d_int):
+        super(BaseAPIHandler, self).initialize()
+        self.debug = self.settings.get('debug', False)
+        self.h9d = h9d_int
 
     def options(self, *args):
         self.set_status(204)
@@ -74,12 +81,7 @@ class BaseAPIHandler(BaseHandler):
             raise tornado.web.HTTPError(401)
 
 
-class H9webAPI(BaseAPIHandler):
-    def initialize(self, h9d_int):
-        super(H9webAPI, self).initialize()
-        self.debug = self.settings.get('debug', False)
-        self.h9d = h9d_int
-
+class SendFrameAPI(BaseAPIHandler):
     #@tornado.web.authenticated
     async def post(self):
         try:
@@ -99,13 +101,51 @@ class H9webAPI(BaseAPIHandler):
         res = await self.h9d.call_request(rpc_req)
         self.write(res)
 
+class GetDevicesAPI(BaseAPIHandler):
+    #@tornado.web.authenticated
+    async def get(self):
+        rpc_req = jsonrpc.request("get_devices_list")
 
+        res = await self.h9d.call_request(rpc_req)
+        self.write(json.dumps(res))
+
+class GetDevicesInfoAPI(BaseAPIHandler):
+    #@tornado.web.authenticated
+    async def get(self, device_id):
+        device_id = int(device_id)
+        rpc_req = jsonrpc.request("get_device_info", params={"dev_id": device_id})
+        res = await self.h9d.call_request(rpc_req)
+        rpc_req = jsonrpc.request("get_registers_list", params={"dev_id": device_id})
+        req_info = await self.h9d.call_request(rpc_req)
+        res["registers_list"] = req_info
+        self.write(json.dumps(res))
+
+class DeviceRegisterAPI(BaseAPIHandler):
+    async def get(self, device_id, register):
+        device_id = int(device_id)
+        register = int(register)
+        rpc_req = jsonrpc.request("get_register_value", params={"dev_id": device_id, "reg": register})
+        try:
+            res = await self.h9d.call_request(rpc_req)
+            self.write(json.dumps(res))
+        except self.h9d.H9dException as e:
+            self.set_status(400)
+            self.write({"code": e.code, "message": e.message})
+
+    async def put(self, device_id, register):
+        device_id = int(device_id)
+        register = int(register)
+        logging.warning(self.request.body)
+        data = json.loads(self.request.body)
+        logging.warning(data)
+        rpc_req = jsonrpc.request("set_register_value", params={"dev_id": device_id, "reg": register, "value": data["value"]})
+        try:
+            res = await self.h9d.call_request(rpc_req)
+            self.write(json.dumps(res))
+        except self.h9d.H9dException as e:
+            self.set_status(400)
+            self.write({"code": e.code, "message": e.message})
 class ExecuteMethodAPI(BaseAPIHandler):
-    def initialize(self, h9d_int):
-        super().initialize()
-        self.debug = self.settings.get('debug', False)
-        self.h9d = h9d_int
-
     #@tornado.web.authenticated
     # async def post(self, method_name):
     #     logging.debug("Execute method '" + method_name + "'")
@@ -149,11 +189,6 @@ class ExecuteMethodAPI(BaseAPIHandler):
 
 
 class ExecuteDeviceMethodAPI(BaseAPIHandler):
-    def initialize(self, h9d_int):
-        super().initialize()
-        self.debug = self.settings.get('debug', False)
-        self.h9d = h9d_int
-
    # @tornado.web.authenticated
    #  async def post(self, device_id, method_name):
    #      logging.debug("Execute device (id: " + device_id +") method '" + method_name)

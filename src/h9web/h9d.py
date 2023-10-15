@@ -8,7 +8,14 @@ import jsonrpc
 from h9.asyncmsgstream import H9msgStream
 
 
+
 class H9d:
+    class H9dException(Exception):
+        def __init__(self, code, message):
+            self.code = code
+            self.message = message
+            super().__init__(self.message)
+
     entity = "h9web"
 
     def __init__(self, address, port):
@@ -56,9 +63,14 @@ class H9d:
                         await Event.publish_to_all(msg)
                     elif isinstance(msg, jsonrpc.Ok):
                         # logging.warning("Ok result")
-                        logging.critical(msg)
+                        logging.info(msg)
                         if msg.id in self.result_queue:
                             self.result_queue[msg.id].set_result(msg.result)
+                            del self.result_queue[msg.id]
+                    elif isinstance(msg, jsonrpc.Error):
+                        logging.warning(msg)
+                        if msg.id in self.result_queue:
+                            self.result_queue[msg.id].set_exception(H9d.H9dException(msg.code, msg.message))
                             del self.result_queue[msg.id]
                 except (StreamClosedError, IncompleteReadError):
                     logging.error("Disconnected from h9d - retry in 5 seconds...")

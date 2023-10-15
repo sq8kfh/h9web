@@ -4,7 +4,7 @@
       <div class="container">
         <div class="row pb-3">
           <div class="col-auto pl-0">
-            <button id="devices-list-refresh-btn" type="button" class="btn btn-outline-info">
+            <button (click)="get_devices()" type="button" class="btn btn-outline-info">
               <i class="bi bi-arrow-repeat"></i> Refresh
             </button>
           </div>
@@ -17,14 +17,20 @@
         </div>
         <div class="row">
           <table class="table table-hover table-sm">
-            <caption>Device list</caption>
-            <thead class="thead-light">
+            <!--            <caption>Device list</caption>-->
+            <thead class="table-dark">
             <tr>
               <th class="col-2" scope="col">#</th>
               <th class="col" scope="col">Name</th>
             </tr>
             </thead>
-            <tbody id="devices-list">
+            <tbody>
+            <tr *ngFor="let _dev of devices; let even = even; let odd = odd"
+                [ngClass]="{ 'list-group-item-light': even, 'list-group-item-secondary': odd }"
+                (click)="select_device(_dev)">
+              <th scope="row">{{ _dev.id }}</th>
+              <td>{{ _dev.name }}</td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -36,31 +42,33 @@
           <div class="col pl-0">
             <div class="row">
               <div class="col-3">Device id:</div>
-              <div class="col" id="dt-id"></div>
+              <div class="col">{{ selected_device?.id }}</div>
             </div>
             <div class="row">
               <div class="col-3">Device type:</div>
-              <div class="col" id="dt-type"></div>
+              <div class="col">{{ selected_device?.type }}</div>
             </div>
             <div class="row">
               <div class="col-3">Device name:</div>
-              <div class="col" id="dt-name"></div>
+              <div class="col">{{ selected_device?.name }}</div>
             </div>
             <div class="row">
               <div class="col-3">Device version:</div>
-              <div class="col" id="dt-version"></div>
+              <div class="col">
+                {{selected_device?.version_major}}.{{selected_device?.version_minor}}.{{selected_device?.version_patch}}
+              </div>
             </div>
             <div class="row">
               <div class="col-3">Created:</div>
-              <div class="col" id="dt-created"></div>
+              <div class="col">{{ selected_device?.created_time }}</div>
             </div>
             <div class="row">
               <div class="col-3">Last seen:</div>
-              <div class="col" id="dt-last-seen"></div>
+              <div class="col">{{ selected_device?.last_seen_time }}</div>
             </div>
             <div class="row">
               <div class="col-3">Description:</div>
-              <div class="col" id="dt-description"></div>
+              <div class="col">{{ selected_device?.description }}</div>
             </div>
           </div>
         </div>
@@ -78,9 +86,9 @@
           <div class="col"></div>
         </div>
         <div class="row">
-          <table class="table table-striped table-hover table-sm">
-            <caption>Registers list</caption>
-            <thead class="thead-light">
+          <table class="table table-hover table-sm">
+            <!--            <caption>Registers list</caption>-->
+            <thead class="table-dark">
             <tr>
               <th class="col-1" scope="col">#</th>
               <th class="col-5" scope="col">Name</th>
@@ -90,15 +98,38 @@
               <th class="col-2" scope="col">Action</th>
             </tr>
             </thead>
-            <tbody id="register-list">
-            <!--<tr>
-                <th scope="row">1</th>
-                <td>?</td>
-                <td>16</td>
-                <td>uint</td>
-                <td><input type="text"/></td>
-                <td><button type="button" class="btn btn-outline-info">Read</button><button type="button" class="btn btn-outline-info">Write</button></td>
-            </tr>-->
+            <tbody>
+            <ng-container *ngFor="let _reg of selected_device?.registers_list; let even = even; let odd = odd">
+              <tr [ngClass]="{ 'table-light': even, 'table-secondary': odd }">
+                <th scope="row" [attr.rowspan]="_reg.bits_names.length != 0 ? 2 : 1">{{ _reg.number }}</th>
+                <td>{{ _reg.name }}</td>
+                <td>{{ _reg.size }}</td>
+                <td>{{ _reg.type }}</td>
+                <!--              type="{{ _reg.type == 'uint' ? 'number' : 'text' }}"-->
+                <td><input [(ngModel)]="_reg.value"></td>
+                <td>
+                  <div class="btn-group">
+                    <button type="button" (click)="get_register(selected_device!, _reg)" [disabled]="!_reg.readable"
+                            class="btn btn-primary badge">Get
+                    </button>
+                    <button type="button" (click)="set_register(selected_device!, _reg)" [disabled]="!_reg.writable"
+                            class="btn btn-primary badge">Set
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="_reg.bits_names.length != 0" [ngClass]="{ 'table-light': even, 'table-secondary': odd }">
+                <td colspan="5">
+                  <div class="btn-group">
+                    <button *ngFor="let name of _reg.bits_names; index as i; count as count" type="button"
+                            (click)="_reg.value = toggle_bit(_reg.value, count-i-1)"
+                            [ngClass]="{ 'btn-success': is_bit_set(_reg.value, count-i-1) }"
+                            class="btn btn-primary badge">{{ name }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
             </tbody>
           </table>
         </div>
