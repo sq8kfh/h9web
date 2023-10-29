@@ -17,7 +17,7 @@
         </div>
         <div class="row">
           <table class="table table-hover table-sm">
-            <!--            <caption>Device list</caption>-->
+            <!--            <caption>Node list</caption>-->
             <thead class="table-dark">
             <tr>
               <th class="col-2" scope="col">#</th>
@@ -41,30 +41,30 @@
         <div class="row pb-3">
           <div class="col pl-0">
             <div class="row">
-              <div class="col-3">Device id:</div>
+              <div class="col-3">Node id:</div>
               <div class="col">{{ selected_device?.id }}</div>
             </div>
             <div class="row">
-              <div class="col-3">Device type:</div>
+              <div class="col-3">Node type:</div>
               <div class="col">{{ selected_device?.type }}</div>
             </div>
             <div class="row">
-              <div class="col-3">Device name:</div>
+              <div class="col-3">Node name:</div>
               <div class="col">{{ selected_device?.name }}</div>
             </div>
             <div class="row">
-              <div class="col-3">Device version:</div>
+              <div class="col-3">Node version:</div>
               <div class="col">
                 {{selected_device?.version_major}}.{{selected_device?.version_minor}}.{{selected_device?.version_patch}}
               </div>
             </div>
             <div class="row">
               <div class="col-3">Created:</div>
-              <div class="col">{{ selected_device?.created_time }}</div>
+              <div class="col">{{ format_time(selected_device?.created_time!) }}</div>
             </div>
             <div class="row">
               <div class="col-3">Last seen:</div>
-              <div class="col">{{ selected_device?.last_seen_time }}</div>
+              <div class="col">{{ format_time(selected_device?.last_seen_time!) }}</div>
             </div>
             <div class="row">
               <div class="col-3">Description:</div>
@@ -86,7 +86,7 @@
           <div class="col"></div>
         </div>
         <div class="row">
-          <table class="table table-hover table-sm">
+          <table class="table table-hover table-sm align-middle">
             <!--            <caption>Registers list</caption>-->
             <thead class="table-dark">
             <tr>
@@ -121,7 +121,7 @@
               <tr *ngIf="_reg.bits_names.length != 0" [ngClass]="{ 'table-light': even, 'table-secondary': odd }">
                 <td colspan="5">
                   <div class="btn-group">
-                    <button *ngFor="let name of _reg.bits_names; index as i; count as count" type="button"
+                    <button *ngFor="let name of _reg.bits_names.reverse(); index as i; count as count" type="button"
                             (click)="_reg.value = toggle_bit(_reg.value, count-i-1)"
                             [ngClass]="{ 'btn-success': is_bit_set(_reg.value, count-i-1) }"
                             class="btn btn-primary badge">{{ name }}

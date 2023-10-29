@@ -104,7 +104,7 @@ class SendFrameAPI(BaseAPIHandler):
 class GetDevicesAPI(BaseAPIHandler):
     #@tornado.web.authenticated
     async def get(self):
-        rpc_req = jsonrpc.request("get_devices_list")
+        rpc_req = jsonrpc.request("get_nodes_list")
 
         res = await self.h9d.call_request(rpc_req)
         self.write(json.dumps(res))
@@ -113,9 +113,9 @@ class GetDevicesInfoAPI(BaseAPIHandler):
     #@tornado.web.authenticated
     async def get(self, device_id):
         device_id = int(device_id)
-        rpc_req = jsonrpc.request("get_device_info", params={"dev_id": device_id})
+        rpc_req = jsonrpc.request("get_node_info", params={"node_id": device_id})
         res = await self.h9d.call_request(rpc_req)
-        rpc_req = jsonrpc.request("get_registers_list", params={"dev_id": device_id})
+        rpc_req = jsonrpc.request("get_registers_list", params={"node_id": device_id})
         req_info = await self.h9d.call_request(rpc_req)
         res["registers_list"] = req_info
         self.write(json.dumps(res))
@@ -124,7 +124,7 @@ class DeviceRegisterAPI(BaseAPIHandler):
     async def get(self, device_id, register):
         device_id = int(device_id)
         register = int(register)
-        rpc_req = jsonrpc.request("get_register_value", params={"dev_id": device_id, "reg": register})
+        rpc_req = jsonrpc.request("get_register_value", params={"node_id": device_id, "reg": register})
         try:
             res = await self.h9d.call_request(rpc_req)
             self.write(json.dumps(res))
@@ -138,7 +138,7 @@ class DeviceRegisterAPI(BaseAPIHandler):
         logging.warning(self.request.body)
         data = json.loads(self.request.body)
         logging.warning(data)
-        rpc_req = jsonrpc.request("set_register_value", params={"dev_id": device_id, "reg": register, "value": data["value"]})
+        rpc_req = jsonrpc.request("set_register_value", params={"node_id": device_id, "reg": register, "value": data["value"]})
         try:
             res = await self.h9d.call_request(rpc_req)
             self.write(json.dumps(res))

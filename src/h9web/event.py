@@ -41,20 +41,9 @@ class Event(BaseAPIHandler):
             ret = ret + str(seconds) + ' seconds'
         return ret
 
-    async def publish_h9bus_frame(self, msg):
-        try:
-            json_data = json.dumps(msg.to_dict())
-            logging.debug('Event send {!r}'.format(json_data))
-
-            self.write('event: h9frame\n')
-            self.write('data: {}\n\n'.format(json_data))
-            await self.flush()
-        except StreamClosedError:
-            self.run = False
-
     async def publish_on_frame(self, frame):
         try:
-            logging.error('Event on_frame {!r}'.format(frame))
+            logging.debug('Event on_frame {!r}'.format(frame))
             self.write('event: on_frame\n')
             self.write('id: 1\n')
             self.write('data: {}\n\n'.format(json.dumps(frame)))
@@ -62,26 +51,12 @@ class Event(BaseAPIHandler):
         except StreamClosedError:
             self.run = False
 
-    async def publish_h9d_stat(self, msg):
+    async def publish_on_dev_status_update(self, status):
         try:
-            tmp = msg.to_dict()
-            tmp['value']['uptime'] = self.convert_uptime(tmp['value']['uptime'])
-            json_data = json.dumps(tmp)
-            #logging.debug('Event send {!r}'.format(json_data))
-            self.write('event: h9d_stat\n')
-            self.write('data: {}\n\n'.format(json_data))
-            await self.flush()
-        except StreamClosedError:
-            self.run = False
-
-    async def publish_device_event(self, msg):
-        try:
-            tmp = msg.to_dict()
-            event_msg = dict(device_id=tmp['device_id'], event_name=tmp['event_name'], event_data=tmp['value'])
-            json_data = json.dumps(event_msg)
-            logging.debug('Event send {!r}'.format(json_data))
-            self.write('event: device_event\n')
-            self.write('data: {}\n\n'.format(json_data))
+            logging.debug('Event on_dev_status_update {!r}'.format(status))
+            self.write('event: on_dev_status_update\n')
+            self.write('id: 1\n')
+            self.write('data: {}\n\n'.format(json.dumps(status)))
             await self.flush()
         except StreamClosedError:
             self.run = False
@@ -111,9 +86,13 @@ class Event(BaseAPIHandler):
     async def publish_to_all(cls, notification):
         if notification.method == "on_frame":
             frame = notification.params["frame"]
-            logging.error('Event on_frame {!r}'.format(frame))
+            logging.info('Event on_frame {!r}'.format(frame))
             frame["priority"] = 0 if frame["priority"] == "H" else 1
             await tornado.web.gen.multi([sub.publish_on_frame(frame) for sub in cls.subscribers])
+        elif notification.method == "dev_status_update":
+            status = notification.params["status"]
+            logging.info('Event dev_status_update {!r}'.format(status))
+            await tornado.web.gen.multi([sub.publish_on_dev_status_update(status) for sub in cls.subscribers])
         # if isinstance(message, H9Frame):
         #     await tornado.web.gen.multi([sub.publish_h9bus_frame(message) for sub in cls.subscribers])
         # if isinstance(message, H9MethodResponse) and message.method == 'h9bus_stat':

@@ -43,6 +43,14 @@ class H9d:
                 if not isinstance(res, jsonrpc.Ok) or res.id != req["id"]:
                     logging.error("H9d frame subscribe error - {}".format(res))
 
+                req = jsonrpc.request("subscribe", params={"event": "dev_status"})
+                self._send_message(req)
+                data = await self.msg_stream.read_json_str()
+                res = jsonrpc.parse_json(data)
+
+                if not isinstance(res, jsonrpc.Ok) or res.id != req["id"]:
+                    logging.error("H9d dev_status subscribe error - {}".format(res))
+
             except (StreamClosedError, ConnectionRefusedError) as e:
                 if self.retry_count == 0:
                     logging.error("Unable connect to h9d - retry in 10 seconds...")
@@ -59,7 +67,7 @@ class H9d:
 
                     msg = jsonrpc.parse_json(data)
                     if isinstance(msg, jsonrpc.Notification):
-                        logging.warning(msg)
+                        # logging.warning(msg)
                         await Event.publish_to_all(msg)
                     elif isinstance(msg, jsonrpc.Ok):
                         # logging.warning("Ok result")

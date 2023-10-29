@@ -1,4 +1,4 @@
-export interface Device {
+export interface Node {
   id: number;
   name: string;
 }
@@ -22,8 +22,8 @@ export interface DeviceInfo {
   version_minor: number,
   version_patch: number,
   name: string,
-  created_time: number,
-  last_seen_time: number,
+  created_time: string,
+  last_seen_time: string,
   description: string,
   registers_list: DevRegister[]
 }

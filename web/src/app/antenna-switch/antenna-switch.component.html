@@ -1,0 +1,21 @@
+<div class="card-columns">
+  <div class="card">
+    <div class="card-header">
+      <div class="row">
+        <div class="col">Antenna switch</div>
+        <div class="col">
+          <div class="float-right">#?</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="btn-group" role="group" aria-label="Select antenna">
+          <button *ngFor="let ant of antenna_number" type="button" class="btn btn-outline-info fast-transition"  [ngClass]="{'active': state.selected_antenna == ant}">
+            {{ ant }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
