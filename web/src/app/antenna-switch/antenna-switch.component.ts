@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {AntennaSwitchService} from "../antenna-switch.service";
 import {AntennaSwitch} from "../antenna-switch";
 
@@ -15,10 +15,17 @@ export class AntennaSwitchComponent {
   antenna_number: number[];
 
   constructor(private antenna_switch_service: AntennaSwitchService) {
-    this.antenna_number = Array(8).fill(0).map((x,i)=>i+1);
+    this.antenna_number = Array(8).fill(0).map((x, i) => i + 1);
   }
 
   ngOnInit(): void {
     this.state = this.antenna_switch_service.get_state();
+  }
+
+  select_antenna(an: number): void {
+    if (this.state.selected_antenna == an)
+      this.antenna_switch_service.select_antenna(0);
+    else
+      this.antenna_switch_service.select_antenna(an);
   }
 }

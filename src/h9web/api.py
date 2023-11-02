@@ -145,97 +145,19 @@ class DeviceRegisterAPI(BaseAPIHandler):
         except self.h9d.H9dException as e:
             self.set_status(400)
             self.write({"code": e.code, "message": e.message})
-class ExecuteMethodAPI(BaseAPIHandler):
-    #@tornado.web.authenticated
-    # async def post(self, method_name):
-    #     logging.debug("Execute method '" + method_name + "'")
-    #     msg = H9ExecuteMethod(method_name)
-    #     if self.request.body:
-    #         msg.value = json.loads(self.request.body)
-    #
-    #     msg = await self.h9d_connection_send_msg_get_response(msg)
-    #
-    #     #h9d_connection = await self.get_h9d_connection()
-    #     #h9d_connection.writemsg(msg)
-    #     #msg = await h9d_connection.readmsg()
-    #     #self.return_h9d_connection(h9d_connection)
-    #
-    #     if isinstance(msg, H9MethodResponse):
-    #         r = json.dumps(msg.to_dict())
-    #         if msg.error_code != 0:
-    #             self.set_status(400)
-    #             r = json.dumps({
-    #                 'error': {
-    #                     'code': msg.error_code,
-    #                     # 'name': msg.name,
-    #                     'message': msg.error_message,
-    #                 }
-    #             })
-    #         self.write(r)
-    #     elif isinstance(msg, H9Error):
-    #         self.set_status(400)
-    #         r = json.dumps({
-    #             'error': {
-    #                 'code': msg.code,
-    #                 'name': msg.name,
-    #                 'message': msg.message,
-    #             }
-    #         })
-    #         self.write(r)
 
-    #@tornado.web.authenticated
-    async def get(self, method_name):
-        await self.post(method_name)
-
-
-class ExecuteDeviceMethodAPI(BaseAPIHandler):
-   # @tornado.web.authenticated
-   #  async def post(self, device_id, method_name):
-   #      logging.debug("Execute device (id: " + device_id +") method '" + method_name)
-   #      msg = H9ExecuteDeviceMethod(device_id, method_name)
-   #      if self.request.body:
-   #          msg.value = json.loads(self.request.body)
-   #
-   #      msg = await self.h9d_connection_send_msg_get_response(msg)
-   #
-   #      #h9d_connection = await self.get_h9d_connection()
-   #      #h9d_connection.writemsg(msg)
-   #      #msg = await h9d_connection.readmsg()
-   #      #self.return_h9d_connection(h9d_connection)
-   #
-   #      if isinstance(msg, H9DeviceMethodResponse):
-   #          r = json.dumps(msg.to_dict())
-   #          if msg.error_code != 0:
-   #              self.set_status(400)
-   #              r = json.dumps({
-   #                  'error': {
-   #                      'code': msg.error_code,
-   #                      #'name': msg.name,
-   #                      'message': msg.error_message,
-   #                  }
-   #              })
-   #          elif msg.method == 'info':
-   #              tmp = msg.value
-   #              created_time_utc = parser.isoparse(tmp['created_time'])
-   #              last_seen_time_utc = parser.isoparse(tmp['last_seen_time'])
-   #              to_zone = tz.tzlocal()
-   #              tmp['created_time'] = created_time_utc.astimezone(to_zone).strftime("%Y-%m-%d %H:%M")
-   #              tmp['last_seen_time'] = last_seen_time_utc.astimezone(to_zone).strftime("%Y-%m-%d %H:%M")
-   #              msg.value = tmp
-   #              r = json.dumps(msg.to_dict())
-   #          self.write(r)
-   #      elif isinstance(msg, H9Error):
-   #          logging.debug(msg)
-   #          self.set_status(400)
-   #          r = json.dumps({
-   #              'error': {
-   #                  'code': msg.code,
-   #                  'name': msg.name,
-   #                  'message': msg.message,
-   #              }
-   #          })
-   #          self.write(r)
-
+class ExecuteDevMethodAPI(BaseAPIHandler):
+    async def put(self, dev_id, method):
+        logging.warning(self.request.body)
+        data = json.loads(self.request.body)
+        logging.warning(data)
+        rpc_req = jsonrpc.request("dev_call", params={"dev_id": dev_id, "method": method} | data)
+        try:
+            res = await self.h9d.call_request(rpc_req)
+            self.write(json.dumps(res))
+        except self.h9d.H9dException as e:
+            self.set_status(400)
+            self.write({"code": e.code, "message": e.message})
 
     #@tornado.web.authenticated
     async def get(self, device_id, method_name):

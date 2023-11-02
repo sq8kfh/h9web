@@ -1,8 +1,18 @@
 import {Injectable} from '@angular/core';
 import {SseService} from "./sse.service";
 import {Subscription} from "rxjs";
-import {AntennaSwitch} from "./antenna-switch";
+import {AntennaSwitch, AntennaSwitchCtrl} from "./antenna-switch";
 import {Frame} from "./frame";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
+
+const ANTENNA_SWITCH_CTRL_URL: string = 'http://127.0.0.1:8888/api/dev';
+
+const httpOptions = {
+  headers: new HttpHeaders({
+    'Content-Type':  'application/json',
+    Authorization: 'my-auth-token'
+  })
+};
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +24,7 @@ export class AntennaSwitchService {
     selected_antenna: 0
   };
 
-  constructor(private sseService: SseService) {
+  constructor(private http: HttpClient, private sseService: SseService) {
   }
 
   private subscribe_on_dev_status_update_sse() {
@@ -39,5 +49,18 @@ export class AntennaSwitchService {
   get_state(): AntennaSwitch {
     this.subscribe_on_dev_status_update_sse();
     return this.state;
+  }
+
+  select_antenna(an: number): void {
+    let dev_id: string = "as";
+    const url = `${ANTENNA_SWITCH_CTRL_URL}/${dev_id}/select_antenna`;
+    this.http.put<string>(url, `{"antenna_number": ${an}}`, httpOptions).subscribe({
+      next(r) {
+        console.error(r);
+      },
+      error(e) {
+        console.error("Select antenna error: ", e);
+      }
+    });
   }
 }

@@ -12,6 +12,7 @@ class H9msgStream(object):
     async def connect(self, entity="pyh9"):
         self._reader, self._writer = await asyncio.open_connection(self._host, self._port)
         msg = jsonrpc.request("authenticate", params={"entity": entity})
+        self.write_json_str(json.dumps(msg))
 
     def write_json_str(self, json_str):
         data = json_str.encode('utf-8')
