@@ -1,11 +1,12 @@
 import {Injectable} from '@angular/core';
 import {SseService} from "./sse.service";
-import {Subscription} from "rxjs";
+import {catchError, Observable, Subscription} from "rxjs";
 import {AntennaSwitch, AntennaSwitchCtrl} from "./antenna-switch";
 import {Frame} from "./frame";
 import {HttpClient, HttpHeaders} from "@angular/common/http";
+import {Node} from "./node";
+import {API_URL} from "./app.globals";
 
-const ANTENNA_SWITCH_CTRL_URL: string = 'http://127.0.0.1:8888/api/dev';
 
 const httpOptions = {
   headers: new HttpHeaders({
@@ -18,6 +19,8 @@ const httpOptions = {
   providedIn: 'root'
 })
 export class AntennaSwitchService {
+  private dev_id = 'antenna_switch';
+  private dev_url = `${API_URL}/dev`;
   private on_dev_status_update_subscription: Subscription | null = null;
 
   state: AntennaSwitch = {
@@ -25,16 +28,27 @@ export class AntennaSwitchService {
   };
 
   constructor(private http: HttpClient, private sseService: SseService) {
+    console.error("konstruktor");
+  }
+
+  private update_state(s: AntennaSwitch) {
+    if (s.selected_antenna !== undefined) {
+      this.state.selected_antenna = s.selected_antenna;
+    }
   }
 
   private subscribe_on_dev_status_update_sse() {
     if (this.on_dev_status_update_subscription === null) {
+
+      const url = `${this.dev_url}/${this.dev_id}/get_state`;
+      this.http.get<AntennaSwitch>(url).subscribe(as_state => this.update_state(as_state));
+
       let _this = this;
       this.on_dev_status_update_subscription = this.sseService.get_antenna_switch_sse().subscribe({
         next(x) {
+          _this.update_state(x)
           console.log(typeof (x));
           console.log('on_dev_status_update_sse ' + x.selected_antenna);
-          _this.state.selected_antenna = x.selected_antenna;
         },
         error(err) {
           console.error('something wrong occurred: ' + err);
@@ -52,8 +66,7 @@ export class AntennaSwitchService {
   }
 
   select_antenna(an: number): void {
-    let dev_id: string = "as";
-    const url = `${ANTENNA_SWITCH_CTRL_URL}/${dev_id}/select_antenna`;
+    const url = `${this.dev_url}/${this.dev_id}/select_antenna`;
     this.http.put<string>(url, `{"antenna_number": ${an}}`, httpOptions).subscribe({
       next(r) {
         console.error(r);

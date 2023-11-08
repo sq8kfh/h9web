@@ -10,7 +10,7 @@ import {CliComponent} from "./cli/cli.component";
 const routes: Routes = [
   {path: '', redirectTo: '/dashboard', pathMatch: 'full'},
   {path: 'dashboard', component: DashboardComponent},
-  {path: 'nodes', component: NodesComponent},
+  {path: 'nodes', component: NodesComponent},//, canActivate: [guard np do logowania]},
   {path: 'rawframe', component: RawframeComponent},
   {path: 'stats', component: StatsComponent},
   {path: 'settings', component: SettingsComponent}

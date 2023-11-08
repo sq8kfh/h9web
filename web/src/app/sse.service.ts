@@ -2,13 +2,15 @@ import {Injectable, NgZone} from '@angular/core';
 import {Observable, Subscriber} from "rxjs";
 import {Frame} from "./frame";
 import {AntennaSwitch} from "./antenna-switch";
+import {API_URL} from "./app.globals";
 
-const EVENT_URL: string = 'http://127.0.0.1:8888/events';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SseService {
+  private event_url =  `${API_URL}/events`
+
   private event_source: EventSource | null = null;
 
   constructor(private _zone: NgZone) {
@@ -58,7 +60,7 @@ export class SseService {
 
   private getEventSource(): EventSource {
     if (this.event_source === null)
-      this.event_source = new EventSource(EVENT_URL);
+      this.event_source = new EventSource(this.event_url);
 
     return this.event_source;
   }

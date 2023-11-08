@@ -158,7 +158,14 @@ class ExecuteDevMethodAPI(BaseAPIHandler):
         except self.h9d.H9dException as e:
             self.set_status(400)
             self.write({"code": e.code, "message": e.message})
-
+    async def get(self, dev_id, method):
+        rpc_req = jsonrpc.request("dev_call", params={"dev_id": dev_id, "method": method})
+        try:
+            res = await self.h9d.call_request(rpc_req)
+            self.write(json.dumps(res))
+        except self.h9d.H9dException as e:
+            self.set_status(400)
+            self.write({"code": e.code, "message": e.message})
     #@tornado.web.authenticated
-    async def get(self, device_id, method_name):
-        await self.post(device_id, method_name)
+    # async def get(self, device_id, method_name):
+    #     await self.post(device_id, method_name)

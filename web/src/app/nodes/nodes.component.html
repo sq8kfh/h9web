@@ -60,11 +60,11 @@
             </div>
             <div class="row">
               <div class="col-3">Created:</div>
-              <div class="col">{{ format_time(selected_device?.created_time!) }}</div>
+              <div class="col">{{ selected_device?.created_time! | date:'dd-MM-YYYY, HH:mm' }}</div>
             </div>
             <div class="row">
               <div class="col-3">Last seen:</div>
-              <div class="col">{{ format_time(selected_device?.last_seen_time!) }}</div>
+              <div class="col">{{ selected_device?.last_seen_time! | date:'dd-MM-YYYY, HH:mm' }}</div>
             </div>
             <div class="row">
               <div class="col-3">Description:</div>
