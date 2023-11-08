@@ -3,8 +3,7 @@ import {Frame} from "./frame";
 import {HttpClient, HttpErrorResponse, HttpHeaders} from "@angular/common/http";
 import {catchError, Subscription, throwError} from "rxjs";
 import {SseService} from "./sse.service";
-
-const SEND_FRAME_URL: string = 'http://127.0.0.1:8888/api/sendframe';
+import {API_URL} from "./app.globals";
 
 const httpOptions = {
   headers: new HttpHeaders({
@@ -17,6 +16,8 @@ const httpOptions = {
   providedIn: 'root'
 })
 export class FrameService {
+  private sendframe_url= `${API_URL}/sendframe`
+
   private on_frame_subscription: Subscription | null = null;
 
   frame: Frame = {
@@ -165,7 +166,7 @@ export class FrameService {
     let t = JSON.parse(JSON.stringify(f)) //deep copy 🤦
 
     console.log("try send")
-    this.http.post<Frame>(SEND_FRAME_URL, t, httpOptions).subscribe({
+    this.http.post<Frame>(this.sendframe_url, t, httpOptions).subscribe({
       next(r) {
         // console.error(r);
       },

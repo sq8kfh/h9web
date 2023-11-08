@@ -2,8 +2,7 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {webSocket, WebSocketSubject} from 'rxjs/webSocket';
-
-const CLI_URL: string = "ws://127.0.0.1:8888/cli?id=1";
+import {API_URL} from "./app.globals";
 
 export interface Message {
   data: string;
@@ -13,6 +12,7 @@ export interface Message {
   providedIn: 'root'
 })
 export class CliService {
+  private cli_url= `${API_URL}/cli?id=1`
   visible: boolean = false;
   public socket$!: WebSocketSubject<any>;
 
@@ -28,7 +28,7 @@ export class CliService {
 
   connect() {
     this.socket$ = webSocket({
-      url: CLI_URL,
+      url: this.cli_url,
       openObserver: {
         next: () => {
           this._is_connected = true;
